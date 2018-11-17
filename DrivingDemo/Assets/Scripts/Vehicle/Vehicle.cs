@@ -25,8 +25,8 @@ public class Vehicle : MonoBehaviour
     private float m_accelerationInput;
     private float m_deccelerationInput;
     private float m_steeringInput;
-    private bool m_flip = false;
-    private bool m_handbrake = false;
+    //private bool m_flip = false;
+    //private bool m_handbrake = false;
 
 	public IEnumerable<Wheel> Wheels
 	{

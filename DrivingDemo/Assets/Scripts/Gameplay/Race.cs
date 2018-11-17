@@ -11,9 +11,17 @@ using UnibusEvent;
 /// </summary>
 public class Race
 {
-    private Course m_course;
-    private int m_laps;
+    private Course m_course = null;
+    private int m_laps = 0;
     private bool m_inProgress = false;
+    public bool InProgress
+    {
+        get
+        {
+            return m_inProgress;
+        }
+    }
+
     private Dictionary<Vehicle, RaceParticipentStats> m_participants = null;
 
     public Race(List<Vehicle> participants, Course course, int laps)
@@ -28,19 +36,32 @@ public class Race
         m_course = course;
         m_laps = laps;
 
+        Unibus.Subscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+    }
+
+    ~Race()
+    {
+        Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
     }
 
     public void Start()
     {
+        if (m_inProgress)
+            return;
+
         m_inProgress = true;
 
-        Unibus.Subscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+
+        Debug.Log("RaceStarted");
     }
 
     public void Stop()
     {
+        if (!m_inProgress)
+            return;
+
         m_inProgress = false;
-        Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+        //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
     }
 
     private void OnCheckpointArrival(Checkpoint.CheckpointVehiclePair checkpointVehiclePairIn)
