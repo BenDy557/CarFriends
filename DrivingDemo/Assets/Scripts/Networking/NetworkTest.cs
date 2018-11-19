@@ -8,6 +8,8 @@ using System.Text;
 
 class NetworkTest : MonoBehaviour
 {
+    private string m_localIPAddr = "127.0.0.1";
+
     [SerializeField]
     private string m_targetIPAddr = "127.0.0.1";
     //192.168.0.7 windows laptop
@@ -29,7 +31,10 @@ class NetworkTest : MonoBehaviour
         //RecievingSocket
         m_recieveSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         m_recieveSocket.Blocking = false;
-        m_recieveSocket.Bind(remoteEndPoint);
+        System.Net.IPAddress localipAdd = System.Net.IPAddress.Parse(m_localIPAddr);
+        System.Net.IPEndPoint localEndPoint = new IPEndPoint(localipAdd, port);
+        //System.Net.EndPoint localEndPoint;
+        m_recieveSocket.Bind(localEndPoint);
     }
 
     private void OnDisable()
