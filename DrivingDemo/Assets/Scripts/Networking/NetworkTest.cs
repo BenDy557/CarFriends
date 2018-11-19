@@ -18,6 +18,8 @@ class NetworkTest : MonoBehaviour
     private Socket m_recieveSocket;
     private int port = 7001;
 
+    private System.Net.IPEndPoint m_remoteEndPoint;
+
     string host;
 
     public void OnEnable()
@@ -25,14 +27,16 @@ class NetworkTest : MonoBehaviour
         //sending socket
         m_sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
-        System.Net.IPEndPoint remoteEndPoint = new IPEndPoint(ipAdd, port);
-        m_sendSocket.Connect(remoteEndPoint);
+        m_remoteEndPoint = new IPEndPoint(ipAdd, port);
+        //m_sendSocket.Connect(m_remoteEndPoint);
+        //m_sendSocket.
 
         //RecievingSocket
         m_recieveSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         m_recieveSocket.Blocking = false;
         System.Net.IPAddress localipAdd = System.Net.IPAddress.Parse(m_localIPAddr);
         System.Net.IPEndPoint localEndPoint = new IPEndPoint(localipAdd, port);
+
         //System.Net.EndPoint localEndPoint;
         m_recieveSocket.Bind(localEndPoint);
     }
@@ -88,7 +92,7 @@ class NetworkTest : MonoBehaviour
 
         //Start sending stuf..
         byte[] byData = System.Text.Encoding.ASCII.GetBytes("un:" + "Shit");
-        m_sendSocket.Send(byData);
+        m_sendSocket.SendTo(byData, m_remoteEndPoint);
 
         Debug.Log("Message Sent");
     }
