@@ -10,6 +10,7 @@ class NetworkTest : MonoBehaviour
 {
     [SerializeField]
     private string m_targetIPAddr = "127.0.0.1";
+    //192.168.0.7 windows laptop
 
     private Socket m_sendSocket;
     private Socket m_recieveSocket;
@@ -34,8 +35,10 @@ class NetworkTest : MonoBehaviour
     private void OnDisable()
     {
         Debug.Log("Closed");
-        m_sendSocket.Close();
-        m_recieveSocket.Close();
+        if (m_sendSocket != null)
+            m_sendSocket.Close();
+        if (m_recieveSocket != null)
+            m_recieveSocket.Close();
     }
 
     private void Update()
