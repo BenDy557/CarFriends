@@ -91,9 +91,23 @@ class NetworkTest : MonoBehaviour
         }
 
         //Start sending stuf..
-        byte[] byData = System.Text.Encoding.ASCII.GetBytes("un:" + "Shit");
+        byte[] byData = System.Text.Encoding.ASCII.GetBytes("Message from: " + GetLocalIPAddress());
         m_sendSocket.SendTo(byData, m_remoteEndPoint);
 
         Debug.Log("Message Sent");
+    }
+
+
+    public static string GetLocalIPAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
+        }
+        return null;
     }
 }
