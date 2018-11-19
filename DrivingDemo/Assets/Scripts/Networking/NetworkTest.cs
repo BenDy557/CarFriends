@@ -35,7 +35,7 @@ class NetworkTest : MonoBehaviour
         m_recieveSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         m_recieveSocket.Blocking = false;
         System.Net.IPAddress localipAdd = System.Net.IPAddress.Parse(m_localIPAddr);
-        System.Net.IPEndPoint localEndPoint = new IPEndPoint(localipAdd, port);
+        System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
         //System.Net.EndPoint localEndPoint;
         m_recieveSocket.Bind(localEndPoint);
