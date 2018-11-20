@@ -18,11 +18,16 @@ class NetworkTest : MonoBehaviour
 
     private Socket m_sendSocket;
     private Socket m_recieveSocket;
-    private int port = 7001;
+    private int port = 2349;
 
     private System.Net.IPEndPoint m_remoteEndPoint;
 
     string host;
+
+
+
+    ////////////////////////
+    private UdpClient m_udpClient;
 
     public void OnEnable()
     {
@@ -32,7 +37,6 @@ class NetworkTest : MonoBehaviour
             if (tempIP.AddressFamily == AddressFamily.InterNetwork)
             {
                 m_localIPAddr = tempIP;
-                Debug.Log("HERE");
             }
 
             Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
@@ -42,8 +46,6 @@ class NetworkTest : MonoBehaviour
         //string tempIPAddr = 
 
         //Debug.Log("My IP address: " + tempIPAddr)
-
-
 
         //sending socket
         m_sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -55,9 +57,12 @@ class NetworkTest : MonoBehaviour
         //RecievingSocket
         m_recieveSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         m_recieveSocket.Blocking = false;
-        System.Net.IPEndPoint localEndPoint = new IPEndPoint(m_localIPAddr, port);
-        //System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
+        //System.Net.IPEndPoint localEndPoint = new IPEndPoint(m_localIPAddr, port);
+        System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
         m_recieveSocket.Bind(localEndPoint);
+
+        m_udpClient = new UdpClient(port+1);
+        m_udpClient.Client.Blocking = false;
     }
 
     private void OnDisable()
@@ -98,6 +103,24 @@ class NetworkTest : MonoBehaviour
                     break;
             }
         }
+
+
+
+        try
+        {
+            IPEndPoint senderEndPoint = null;
+            byte[] dataReceived = m_udpClient.Receive(ref senderEndPoint);
+            string text = Encoding.ASCII.GetString(dataReceived);
+            Debug.Log(text);
+
+            byte[] dataSend = Encoding.ASCII.GetBytes("Shit");
+            m_udpClient.Send(dataSend, dataSend.Length, senderEndPoint);
+        }
+        catch
+        {
+            //nothing
+        }
+
     }
 
     [NaughtyAttributes.Button]
@@ -109,9 +132,18 @@ class NetworkTest : MonoBehaviour
             return;
         }
 
-        //Start sending stuf..
-        byte[] byData = System.Text.Encoding.ASCII.GetBytes("Message from: " + GetLocalIPAddress());
-        m_sendSocket.SendTo(byData, m_remoteEndPoint);
+        for (int i = 0; i < 100; i++)
+        {
+            //Start sending stuf..
+            byte[] byData = System.Text.Encoding.ASCII.GetBytes("Message from: " + GetLocalIPAddress());
+            m_sendSocket.SendTo(byData, m_remoteEndPoint);
+        }
+
+
+
+
+
+
 
         Debug.Log("Message Sent");
     }
