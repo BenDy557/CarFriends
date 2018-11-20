@@ -8,11 +8,13 @@ using System.Text;
 
 class NetworkTest : MonoBehaviour
 {
-    private string m_localIPAddr = "127.0.0.1";
+    private IPAddress m_localIPAddr;
 
     [SerializeField]
     private string m_targetIPAddr = "127.0.0.1";
     //192.168.0.7 windows laptop
+    //192.168.0.9 mac laptop
+    //172.16.20.138 work desktop
 
     private Socket m_sendSocket;
     private Socket m_recieveSocket;
@@ -24,6 +26,25 @@ class NetworkTest : MonoBehaviour
 
     public void OnEnable()
     {
+        IPHostEntry tempHostEntry = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (IPAddress tempIP in tempHostEntry.AddressList)
+        {
+            if (tempIP.AddressFamily == AddressFamily.InterNetwork)
+            {
+                m_localIPAddr = tempIP;
+                Debug.Log("HERE");
+            }
+
+            Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
+        }
+
+
+        //string tempIPAddr = 
+
+        //Debug.Log("My IP address: " + tempIPAddr)
+
+
+
         //sending socket
         m_sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
@@ -34,10 +55,8 @@ class NetworkTest : MonoBehaviour
         //RecievingSocket
         m_recieveSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         m_recieveSocket.Blocking = false;
-        System.Net.IPAddress localipAdd = System.Net.IPAddress.Parse(m_localIPAddr);
-        System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
-
-        //System.Net.EndPoint localEndPoint;
+        System.Net.IPEndPoint localEndPoint = new IPEndPoint(m_localIPAddr, port);
+        //System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
         m_recieveSocket.Bind(localEndPoint);
     }
 
