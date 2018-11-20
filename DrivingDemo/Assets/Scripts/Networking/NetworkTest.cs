@@ -61,8 +61,10 @@ class NetworkTest : MonoBehaviour
         System.Net.IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
         m_recieveSocket.Bind(localEndPoint);
 
-        m_udpClient = new UdpClient(port+1);
+        m_udpClient = new UdpClient(0);
         m_udpClient.Client.Blocking = false;
+        //m_udpClient.Client.MulticastLoopback = true;
+        m_udpClient.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.UseLoopback, true);
     }
 
     private void OnDisable()
