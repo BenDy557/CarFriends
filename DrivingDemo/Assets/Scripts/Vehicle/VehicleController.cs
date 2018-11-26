@@ -11,6 +11,7 @@ public class VehicleController : MonoBehaviour
     private VehicleInput m_vehicleInput;
 
     public bool isPlayer = true;
+    public bool isNetworkControlled = false;
 
 
 
@@ -36,6 +37,10 @@ public class VehicleController : MonoBehaviour
             m_vehicleInput.braking = (Input.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = Input.GetButton("Handbrake");
         }
+        if (isNetworkControlled)
+        {
+            CheckNetInput();
+        }
         else
         {
             m_vehicleInput.acceleration = 0.5f;
@@ -43,7 +48,7 @@ public class VehicleController : MonoBehaviour
         }
     }
 
-    public void SteerTowards(Transform target)
+    private void SteerTowards(Transform target)
     {
         if (target == null)
             return;
@@ -53,6 +58,16 @@ public class VehicleController : MonoBehaviour
 
         m_vehicleInput.steering = m_steeringScalarCurve.Evaluate(angleDiff);
     }
+
+    private void CheckNetInput()
+    {
+        VehicleInput netInput;
+
+
+
+
+    }
+    
 
 }
 
