@@ -25,12 +25,6 @@ public class NetworkManager : Singleton<NetworkManager>
 
     private UdpClient m_udpClient;
     ////////////////////////
-    private enum NetworkMessageType
-    {
-        LOCOMOTION,//velocity and position
-        INPUT,//input state
-    }
-
     
 
     public void OnEnable()
