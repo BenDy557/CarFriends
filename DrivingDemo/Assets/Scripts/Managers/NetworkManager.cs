@@ -19,7 +19,7 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         {"LocalHost", "127.0.0.1"},
         {"WorkPC-wifi", "192.168.3.161" },
-        {"WorkMac-wifi", "192.168.3.160" },
+        {"WorkMac-wifi", "192.168.3.156" },
     };
 
     private int port = 2349;

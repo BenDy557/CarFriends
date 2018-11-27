@@ -30,6 +30,6 @@ class NetworkTest : MonoBehaviour
         NetworkData data = new NetworkData(NetworkData.NetworkMessageType.MESSAGE, message);
         NetworkManager.Instance.SendData(data);
 
-        Debug.Log("Message Sent");
+        Debug.Log("Message Sent" + data.Message);
     }
 }

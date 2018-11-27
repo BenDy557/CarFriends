@@ -37,7 +37,7 @@ public class VehicleController : MonoBehaviour
             m_vehicleInput.braking = (Input.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = Input.GetButton("Handbrake");
         }
-        if (isNetworkControlled)
+        else if (isNetworkControlled)
         {
             CheckNetInput();
         }
