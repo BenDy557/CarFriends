@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Runtime.InteropServices;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
@@ -25,7 +27,6 @@ public class NetworkManager : Singleton<NetworkManager>
 
     private UdpClient m_udpClient;
     ////////////////////////
-    
 
     public void OnEnable()
     {
@@ -57,40 +58,82 @@ public class NetworkManager : Singleton<NetworkManager>
     private void Update()
     {
         ReceiveMessage();
-
     }
 
-    private void SendMessage(byte[] dataToSend)
+    private void SendRawData(byte[] dataToSend)
     {
         m_udpClient.Send(dataToSend, dataToSend.Length, m_remoteEndPoint);
         Debug.Log("Message Sent");
     }
 
-    public void SendPositionMessage()
-    {
-
-    }
 
     private void ReceiveMessage()
     {
+        byte[] rawDataReceived;
+
         try
         {
             IPEndPoint senderEndPoint = null;
-            byte[] dataReceived = m_udpClient.Receive(ref senderEndPoint);
-            string text = Encoding.ASCII.GetString(dataReceived);
+            rawDataReceived = m_udpClient.Receive(ref senderEndPoint);
+            string text = Encoding.ASCII.GetString(rawDataReceived);
             Debug.Log(text);
 
-            byte[] dataSend = Encoding.ASCII.GetBytes("Shit");
-            m_udpClient.Send(dataSend, dataSend.Length, senderEndPoint);
+            /*byte[] dataSend = Encoding.ASCII.GetBytes("Shit");
+            m_udpClient.Send(dataSend, dataSend.Length, senderEndPoint);*/
         }
         catch
         {
             //nothing
+            return;
         }
 
+
+
+        /*int size = Marshal.SizeOf(typeof(NetworkData));
+        byte[] sizedData = new byte[size];
+        if (rawDataReceived.GetLength(0) < size)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                sizedData[i] = rawDataReceived[i];
+            }
+        }
+        else
+        {
+            Debug.LogError("data packet length not consistent: " + rawDataReceived.GetLength(0));
+        }
+        NetworkData networkDataReceived = ConvertToNetworkData(sizedData);*/
+
+        NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
+
+        Debug.Log(networkDataReceived.Message);
     }
 
+    private NetworkData ConvertToNetworkData(byte[] rawData)
+    {
+        int size = Marshal.SizeOf(typeof(NetworkData));
+        IntPtr pointer = Marshal.AllocHGlobal(size);
+        Marshal.Copy(rawData, 0, pointer, size);
+        return (NetworkData)Marshal.PtrToStructure(pointer, typeof(NetworkData));
+    }
 
+    private byte[] ConvertToRawData(NetworkData networkData)
+    {
+        int size = Marshal.SizeOf(networkData);
+        byte[] rawData = new byte[size];
+
+        IntPtr pointer = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(networkData, pointer, true);
+        Marshal.Copy(pointer, rawData, 0, size);
+        Marshal.FreeHGlobal(pointer);
+        return rawData;
+    }
+
+    public void SendData(NetworkData data)
+    {
+        byte[] buffer = ConvertToRawData(data);
+        SendRawData(buffer);
+    }
 
     public static string GetLocalIPAddress()
     {
