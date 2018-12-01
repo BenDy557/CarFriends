@@ -22,15 +22,19 @@ public class VehicleController : MonoBehaviour
     [SerializeField]
     private AnimationCurve m_steeringScalarCurve;
 
-    private void Awake ()
-    {
-        m_vehicleInput = m_vehicle.VehicleInput;
 
+    private void Awake()
+    {
         SubscribeToEvents();
     }
-	
-	// Update is called once per frame
-	private void Update ()
+
+    private void Start()
+    {
+        m_vehicleInput = m_vehicle.VehicleInput;
+    }
+
+    // Update is called once per frame
+    private void Update ()
     {
         if (isPlayer)//TODO// remove
         {
