@@ -72,16 +72,17 @@ public class Vehicle : MonoBehaviour
         m_rigidBody = GetComponent<Rigidbody>();
     }
 
-    /*private void Update()
+    private void Update()
     {
         SendLocomotionInfo();
-    }*/
+    }
 
     #region Network
     [Button]
     private void SendLocomotionInfo()
     {
-        NetworkManager.Instance.SendData(new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, transform.position,Vector3.zero));
+        LocomotionData tempData = new LocomotionData(m_rigidBody.position,m_rigidBody.rotation,m_rigidBody.velocity,m_rigidBody.angularVelocity);
+        NetworkManager.Instance.SendData(new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, tempData));
     }
 
     private void ReceiveLocomotionInfo(NetworkData dataIn)
@@ -89,8 +90,14 @@ public class Vehicle : MonoBehaviour
         if (dataIn.NetworkObjectID != NetID)
             return;
 
-        transform.position = dataIn.Position;
+        m_rigidBody.MovePosition(dataIn.LocomotionData.Position);
+        m_rigidBody.MoveRotation(dataIn.LocomotionData.Rotation);
+        m_rigidBody.velocity = dataIn.LocomotionData.Velocity;
+        m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity;
     }
+
+
+
 
     private void SubscribeToEvents()
     {

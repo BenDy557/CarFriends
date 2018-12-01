@@ -107,7 +107,7 @@ public class NetworkManager : Singleton<NetworkManager>
                 break;
             case NetworkData.NetworkMessageType.LOCOMOTION:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Locomotion, networkData);
-                Debug.Log(networkData.Position);
+                Debug.Log(networkData.LocomotionData.Position);
                 break;
             case NetworkData.NetworkMessageType.INPUT:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
