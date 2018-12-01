@@ -8,7 +8,7 @@ public struct NetworkData
     {
         MESSAGE,//just a message
         JOIN,//Player join
-        LOCOMOTION,//velocity and position
+        LOCOMOTION,//velocity and position and rotation
         INPUT,//input state
     }
 
@@ -62,13 +62,13 @@ public struct NetworkData
         //Input = null;
     }
 
-    public NetworkMessageType MessageType;
-    public int NetworkObjectID;
+    public NetworkMessageType MessageType { get; private set; }
+    public int NetworkObjectID { get; private set; }
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
     public string Message;
 
-    public Vector3 Position;
-    public Vector3 Velocity;
+    public Vector3 Position { get; private set; }
+    public Vector3 Velocity { get; private set; }
     //public VehicleInput Input;
 }
 

@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Runtime.InteropServices;
+using UnibusEvent;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
@@ -20,6 +21,8 @@ public class NetworkManager : Singleton<NetworkManager>
         {"LocalHost", "127.0.0.1"},
         {"WorkPC-wifi", "192.168.3.161" },
         {"WorkMac-wifi", "192.168.3.156" },
+        {"HomeMac-wifi", "192.168.0.9" },
+        {"HomePC-wifi", "192.168.0.7" },
     };
 
     private int port = 2349;
@@ -66,7 +69,6 @@ public class NetworkManager : Singleton<NetworkManager>
         Debug.Log("Message Sent");
     }
 
-
     private void ReceiveMessage()
     {
         byte[] rawDataReceived;
@@ -75,11 +77,6 @@ public class NetworkManager : Singleton<NetworkManager>
         {
             IPEndPoint senderEndPoint = null;
             rawDataReceived = m_udpClient.Receive(ref senderEndPoint);
-            string text = Encoding.ASCII.GetString(rawDataReceived);
-            Debug.Log(text);
-
-            /*byte[] dataSend = Encoding.ASCII.GetBytes("Shit");
-            m_udpClient.Send(dataSend, dataSend.Length, senderEndPoint);*/
         }
         catch
         {
@@ -87,26 +84,35 @@ public class NetworkManager : Singleton<NetworkManager>
             return;
         }
 
-
-
-        /*int size = Marshal.SizeOf(typeof(NetworkData));
-        byte[] sizedData = new byte[size];
-        if (rawDataReceived.GetLength(0) < size)
-        {
-            for (int i = 0; i < size; i++)
-            {
-                sizedData[i] = rawDataReceived[i];
-            }
-        }
-        else
-        {
-            Debug.LogError("data packet length not consistent: " + rawDataReceived.GetLength(0));
-        }
-        NetworkData networkDataReceived = ConvertToNetworkData(sizedData);*/
-
         NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
+        DispatchNetworkEvents(networkDataReceived);
+    }
 
-        Debug.Log(networkDataReceived.Message);
+    /// <summary>
+    /// Filters the dispatch of network events based on type of data received
+    /// </summary>
+    /// <param name="networkData">Network data.</param>
+    private void DispatchNetworkEvents(NetworkData networkData)
+    {
+        Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived, networkData);
+
+        switch (networkData.MessageType)
+        {
+            case NetworkData.NetworkMessageType.MESSAGE:
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Message, networkData);
+                Debug.Log(networkData.Message);
+                break;
+            case NetworkData.NetworkMessageType.JOIN:
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Join, networkData);
+                break;
+            case NetworkData.NetworkMessageType.LOCOMOTION:
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Locomotion, networkData);
+                Debug.Log(networkData.Position);
+                break;
+            case NetworkData.NetworkMessageType.INPUT:
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
+                break;
+        }
     }
 
     private NetworkData ConvertToNetworkData(byte[] rawData)

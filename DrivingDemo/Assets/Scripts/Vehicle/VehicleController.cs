@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Dreamteck.Splines;
+using UnibusEvent;
 
 public class VehicleController : MonoBehaviour
 {
@@ -21,9 +22,11 @@ public class VehicleController : MonoBehaviour
     [SerializeField]
     private AnimationCurve m_steeringScalarCurve;
 
-    private void Start ()
+    private void Awake ()
     {
         m_vehicleInput = m_vehicle.VehicleInput;
+
+        SubscribeToEvents();
     }
 	
 	// Update is called once per frame
@@ -37,11 +40,7 @@ public class VehicleController : MonoBehaviour
             m_vehicleInput.braking = (Input.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = Input.GetButton("Handbrake");
         }
-        else if (isNetworkControlled)
-        {
-            CheckNetInput();
-        }
-        else
+        else if (!isNetworkControlled)
         {
             m_vehicleInput.acceleration = 0.5f;
             SteerTowards(m_target);
@@ -59,15 +58,15 @@ public class VehicleController : MonoBehaviour
         m_vehicleInput.steering = m_steeringScalarCurve.Evaluate(angleDiff);
     }
 
-    private void CheckNetInput()
+    private void ReceiveInputData(NetworkData dataIn)
     {
-        VehicleInput netInput;
-
-
-
-
+        //m_vehicleInput = dataIn.Input
     }
-    
+
+    private void SubscribeToEvents()
+    {
+        this.BindUntilDestroy<NetworkData>(EventTags.NetDataReceived_Input, ReceiveInputData);
+    }
 
 }
 

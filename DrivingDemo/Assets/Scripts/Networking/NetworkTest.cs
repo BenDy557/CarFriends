@@ -20,13 +20,6 @@ class NetworkTest : MonoBehaviour
             return;
         }
 
-        /*for (int i = 0; i < 100; i++)
-        {
-            //Start sending stuf..
-            byte[] byData = System.Text.Encoding.ASCII.GetBytes("Message from: " + GetLocalIPAddress());
-            m_sendSocket.SendTo(byData, m_remoteEndPoint);
-        }*/
-
         NetworkData data = new NetworkData(NetworkData.NetworkMessageType.MESSAGE, message);
         NetworkManager.Instance.SendData(data);
 
