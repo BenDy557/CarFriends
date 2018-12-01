@@ -73,19 +73,22 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         byte[] rawDataReceived;
 
-        try
+        while (true)
         {
-            IPEndPoint senderEndPoint = null;
-            rawDataReceived = m_udpClient.Receive(ref senderEndPoint);
-        }
-        catch
-        {
-            //nothing
-            return;
-        }
+            try
+            {
+                IPEndPoint senderEndPoint = null;
+                rawDataReceived = m_udpClient.Receive(ref senderEndPoint);
+            }
+            catch
+            {
+                //nothing
+                return;
+            }
 
-        NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
-        DispatchNetworkEvents(networkDataReceived);
+            NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
+            DispatchNetworkEvents(networkDataReceived);
+        }
     }
 
     /// <summary>

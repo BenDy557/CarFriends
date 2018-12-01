@@ -10,7 +10,7 @@ public class Vehicle : MonoBehaviour
     //private VehicleSetUpData vehicleSetupData;
     //WheelCollider m_frontWheelPrefab;
     //WheelCollider m_rearWheelPrefab;
-    public bool isNetworkControlled = false;
+    public bool m_isNetworkControlled = false;
 
     [SerializeField]
     private NetObject m_netObject = null;
@@ -75,7 +75,7 @@ public class Vehicle : MonoBehaviour
 
     private void Update()
     {
-        if (!isNetworkControlled)
+        if (!m_isNetworkControlled)
         {
             SendLocomotionInfo();
         }
