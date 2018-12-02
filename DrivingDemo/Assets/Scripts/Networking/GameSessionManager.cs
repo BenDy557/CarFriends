@@ -2,19 +2,89 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
+using UnibusEvent;
+
 public class GameSessionManager : Singleton<GameSessionManager>
 {
-    private Host m_host;
-    private Client m_client;
-    private bool SessionStarted { get { return !(m_host == null && m_client == null); } }
+    [SerializeField]
+    private Vector3 m_spawnPosition;
+
+    [SerializeField, Required]
+    private GameObject m_vehiclePrefab = null;
+    [SerializeField, Required]
+    private GameObject m_cameraPrefab = null;
+
+
+    [SerializeField]
+    private Vehicle m_localPlayer = null;
+    private List<Vehicle> m_players = new List<Vehicle>();
+
+    public enum Role
+    {
+        NONE,
+        SERVER,
+        CLIENT,
+    }
+
+    private Role m_role = Role.NONE;
+    private bool SessionStarted { get { return m_role != Role.NONE; } }
+
+
+    private void Update()
+    {
+        //receive updates from all clients
+
+
+        switch (m_role)
+        {
+            case Role.NONE:
+                break;
+            case Role.SERVER:
+                ServerUpdate();
+                break;
+            case Role.CLIENT:
+                ClientUpdate();
+                break;
+        }
+
+    }
+
+    private void ServerUpdate()
+    {
+        //wait for connection messages
+
+        //send player data to all clients
+        for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
+        {
+            for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
+            {
+
+            }
+        }
+    }
+
+    private void ClientUpdate()
+    {
+
+    }
+
 
     [Button]
     private void StartServer()
     {
         if (SessionStarted)
             return;
+        m_role = Role.SERVER;
 
-        m_host = gameObject.AddComponent<Host>();
+        //subsribe to join message
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Join, PlayerJoin);
+
+        m_localPlayer = SpawnVehicle(m_spawnPosition,Quaternion.identity);
+        Debug.LogWarning("BadCode");
+        //Shouldnt be accessing public variables like this
+        m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
+        UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
+        localCamera.SetTarget(m_localPlayer.transform);
     }
 
     [Button]
@@ -22,22 +92,39 @@ public class GameSessionManager : Singleton<GameSessionManager>
     {
         if (SessionStarted)
             return;
+        m_role = Role.CLIENT;
 
-        m_client = gameObject.AddComponent<Client>();
+        LocomotionData locomotionData = new LocomotionData(m_localPlayer.transform.position, m_localPlayer.transform.rotation);
+        NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, m_localPlayer.NetID, locomotionData);
+        NetworkManager.instance.SendData(tempData);
     }
 
 
-    [Button]
+    /*[Button]
     private void StopSession()
     {
-        if (m_host != null)
+        for (int i = 0; i < m_players.Count; i++)
         {
-            m_host.Close();
+            NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.CLOSE, m_players[i].NetID);
+            NetworkManager.instance.SendData(tempData);
         }
+    }*/
 
-        if (m_client != null)
-        {
-            m_client.Close();
-        }
+    private void PlayerJoin(NetworkData dataIn)
+    {
+        Debug.LogWarning("BadCode");
+        //Should use dedicated spawner
+        Vehicle spawnedVehicle = SpawnVehicle(dataIn.LocomotionData.Position.Value, dataIn.LocomotionData.Rotation.Value);
+        spawnedVehicle.NetObject.Init(dataIn.NetworkObjectID, true);
+    }
+
+    private Vehicle SpawnVehicle(Vector3 position, Quaternion rotation)
+    {
+        return Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
+    }
+
+    private void OnDrawGizmos()
+    {
+        Utils.DrawCross(m_spawnPosition,Color.magenta);
     }
 }

@@ -63,6 +63,7 @@ public struct NetworkData
     {
         MESSAGE,//just a message
         JOIN,//Player join
+        CLOSE,//Close game
         LOCOMOTION,//velocity and position and rotation
         INPUT,//input state
     }
@@ -71,12 +72,20 @@ public struct NetworkData
 
 public struct LocomotionData
 {
-    public Vector3 Position { get; private set; }
-    public Quaternion Rotation { get; private set; }
-    public Vector3 Velocity { get; private set; }
-    public Vector3 AngularVelocity { get; private set; }
+    public Vector3? Position { get; private set; }
+    public Quaternion? Rotation { get; private set; }
+    public Vector3? Velocity { get; private set; }
+    public Vector3? AngularVelocity { get; private set; }
 
-    public LocomotionData(Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVel)
+    public LocomotionData(Vector3? position, Quaternion? rotation, Vector3? velocity = null, Vector3? angularVel = null)
+    {
+        Position = position;
+        Rotation = rotation;
+        Velocity = velocity;
+        AngularVelocity = angularVel;
+    }
+
+    public LocomotionData(Vector3? velocity, Vector3? angularVel, Vector3 ? position = null, Quaternion? rotation = null)
     {
         Position = position;
         Rotation = rotation;

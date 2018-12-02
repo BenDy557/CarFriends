@@ -10,10 +10,12 @@ public class Vehicle : MonoBehaviour
     //private VehicleSetUpData vehicleSetupData;
     //WheelCollider m_frontWheelPrefab;
     //WheelCollider m_rearWheelPrefab;
-    public bool m_isNetworkControlled = false;
+
 
     [SerializeField]
     private NetObject m_netObject = null;
+    public NetObject NetObject { get { return m_netObject; } }
+
     public int NetID
     {
         get
@@ -75,7 +77,7 @@ public class Vehicle : MonoBehaviour
 
     private void Update()
     {
-        if (!m_isNetworkControlled)
+        if (m_netObject.IsNetworkControlled)
         {
             SendLocomotionInfo();
         }
@@ -94,10 +96,10 @@ public class Vehicle : MonoBehaviour
         if (dataIn.NetworkObjectID != NetID)
             return;
 
-        m_rigidBody.MovePosition(dataIn.LocomotionData.Position);
-        m_rigidBody.MoveRotation(dataIn.LocomotionData.Rotation);
-        m_rigidBody.velocity = dataIn.LocomotionData.Velocity;
-        m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity;
+        m_rigidBody.MovePosition(dataIn.LocomotionData.Position.Value);
+        m_rigidBody.MoveRotation(dataIn.LocomotionData.Rotation.Value);
+        m_rigidBody.velocity = dataIn.LocomotionData.Velocity.Value;
+        m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity.Value;
     }
 
 

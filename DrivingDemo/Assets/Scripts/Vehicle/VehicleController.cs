@@ -10,17 +10,32 @@ public class VehicleController : MonoBehaviour
     private Vehicle m_vehicle;
 
     private VehicleInput m_vehicleInput;
+    public VehicleInput VehicleInput
+    {
+        get
+        {
+            return m_vehicleInput;
+        }
+    }
 
     public bool isPlayer = true;
-    public bool isNetworkControlled = false;
-
-
 
     [SerializeField]
     private Transform m_target;
 
     [SerializeField]
     private AnimationCurve m_steeringScalarCurve;
+
+
+    [SerializeField]
+    private NetObject m_netObject = null;
+    public int NetID
+    {
+        get
+        {
+            return m_netObject.ID;
+        }
+    }
 
 
     private void Awake()
@@ -44,7 +59,7 @@ public class VehicleController : MonoBehaviour
             m_vehicleInput.braking = (Input.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = Input.GetButton("Handbrake");
         }
-        else if (!isNetworkControlled)
+        else if (!m_netObject.IsNetworkControlled)
         {
             m_vehicleInput.acceleration = 0.5f;
             SteerTowards(m_target);
