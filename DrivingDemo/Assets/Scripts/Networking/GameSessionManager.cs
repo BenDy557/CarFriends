@@ -14,7 +14,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [SerializeField, Required]
     private GameObject m_cameraPrefab = null;
 
-
     [SerializeField]
     private Vehicle m_localPlayer = null;
     private List<Vehicle> m_players = new List<Vehicle>();
@@ -33,8 +32,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private void Update()
     {
         //receive updates from all clients
-
-
         switch (m_role)
         {
             case Role.NONE:
@@ -46,21 +43,19 @@ public class GameSessionManager : Singleton<GameSessionManager>
                 ClientUpdate();
                 break;
         }
-
     }
 
     private void ServerUpdate()
     {
         //wait for connection messages
-
         //send player data to all clients
-        for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
+        /*for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
         {
             for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
             {
 
             }
-        }
+        }*/
     }
 
     private void ClientUpdate()
@@ -94,19 +89,13 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         m_role = Role.CLIENT;
 
-        m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
-        Debug.LogWarning("BadCode");
-        //Shouldnt be accessing public variables like this
-        m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
-        UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
-        localCamera.SetTarget(m_localPlayer.transform);
+        //LocomotionData locomotionData = new LocomotionData(m_localPlayer.transform.position, m_localPlayer.transform.rotation);
+        //NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, m_localPlayer.NetID, locomotionData);
+        LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
+        NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, 2, locomotionData);
 
-
-        LocomotionData locomotionData = new LocomotionData(m_localPlayer.transform.position, m_localPlayer.transform.rotation);
-        NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, m_localPlayer.NetID, locomotionData);
         NetworkManager.instance.SendData(tempData);
     }
-
 
     /*[Button]
     private void StopSession()
@@ -122,7 +111,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
     {
         Debug.LogWarning("BadCode");
         //Should use dedicated spawner
-        Vehicle spawnedVehicle = SpawnVehicle(dataIn.LocomotionData.Position.Value, dataIn.LocomotionData.Rotation.Value);
+        Vehicle spawnedVehicle = SpawnVehicle(dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation);
         spawnedVehicle.NetObject.Init(dataIn.NetworkObjectID, true);
     }
 

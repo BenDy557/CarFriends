@@ -72,12 +72,12 @@ public struct NetworkData
 
 public struct LocomotionData
 {
-    public Vector3? Position { get; private set; }
-    public Quaternion? Rotation { get; private set; }
-    public Vector3? Velocity { get; private set; }
-    public Vector3? AngularVelocity { get; private set; }
+    public Vector3 Position { get; private set; }
+    public Quaternion Rotation { get; private set; }
+    public Vector3 Velocity { get; private set; }
+    public Vector3 AngularVelocity { get; private set; }
 
-    public LocomotionData(Vector3? position, Quaternion? rotation, Vector3? velocity = null, Vector3? angularVel = null)
+    public LocomotionData(Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVel)
     {
         Position = position;
         Rotation = rotation;
@@ -85,10 +85,18 @@ public struct LocomotionData
         AngularVelocity = angularVel;
     }
 
-    public LocomotionData(Vector3? velocity, Vector3? angularVel, Vector3 ? position = null, Quaternion? rotation = null)
+    public LocomotionData(Vector3 position, Quaternion rotation)
     {
         Position = position;
         Rotation = rotation;
+        Velocity = Vector3.zero;
+        AngularVelocity = Vector3.zero;
+    }
+
+    public LocomotionData(Vector3 velocity, Vector3 angularVel)
+    {
+        Position = Vector3.zero;
+        Rotation = Quaternion.identity;
         Velocity = velocity;
         AngularVelocity = angularVel;
     }

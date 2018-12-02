@@ -96,10 +96,10 @@ public class Vehicle : MonoBehaviour
         if (dataIn.NetworkObjectID != NetID)
             return;
 
-        m_rigidBody.MovePosition(dataIn.LocomotionData.Position.Value);
-        m_rigidBody.MoveRotation(dataIn.LocomotionData.Rotation.Value);
-        m_rigidBody.velocity = dataIn.LocomotionData.Velocity.Value;
-        m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity.Value;
+        m_rigidBody.MovePosition(dataIn.LocomotionData.Position);
+        m_rigidBody.MoveRotation(dataIn.LocomotionData.Rotation);
+        m_rigidBody.velocity = dataIn.LocomotionData.Velocity;
+        m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity;
     }
 
 
