@@ -89,6 +89,15 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         m_role = Role.CLIENT;
 
+
+        m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
+        Debug.LogWarning("BadCode");
+        //Shouldnt be accessing public variables like this
+        m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
+        UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
+        localCamera.SetTarget(m_localPlayer.transform);
+
+
         //LocomotionData locomotionData = new LocomotionData(m_localPlayer.transform.position, m_localPlayer.transform.rotation);
         //NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, m_localPlayer.NetID, locomotionData);
         LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
