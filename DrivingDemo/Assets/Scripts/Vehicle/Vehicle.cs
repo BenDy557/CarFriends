@@ -93,7 +93,7 @@ public class Vehicle : MonoBehaviour
 
     private void ReceiveLocomotionInfo(NetworkData dataIn)
     {
-        if (dataIn.NetworkObjectID != NetID)
+        if (dataIn.NetworkObjectID != NetID && m_netObject.IsNetworkControlled)
             return;
 
         m_rigidBody.MovePosition(dataIn.LocomotionData.Position);
@@ -102,11 +102,9 @@ public class Vehicle : MonoBehaviour
         m_rigidBody.angularVelocity = dataIn.LocomotionData.AngularVelocity;
     }
 
-
-
-
     private void SubscribeToEvents()
     {
+
         this.BindUntilDestroy<NetworkData>(EventTags.NetDataReceived_Locomotion, ReceiveLocomotionInfo);
     }
     #endregion
