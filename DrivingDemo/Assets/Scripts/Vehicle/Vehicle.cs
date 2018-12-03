@@ -77,7 +77,7 @@ public class Vehicle : MonoBehaviour
 
     private void Update()
     {
-        if (m_netObject.IsNetworkControlled)
+        if (!m_netObject.IsNetworkControlled)
         {
             SendLocomotionInfo();
         }
@@ -93,7 +93,7 @@ public class Vehicle : MonoBehaviour
 
     private void ReceiveLocomotionInfo(NetworkData dataIn)
     {
-        if (dataIn.NetworkObjectID != NetID && m_netObject.IsNetworkControlled)
+        if (dataIn.NetworkObjectID != NetID && !m_netObject.IsNetworkControlled)
             return;
 
         m_rigidBody.MovePosition(dataIn.LocomotionData.Position);

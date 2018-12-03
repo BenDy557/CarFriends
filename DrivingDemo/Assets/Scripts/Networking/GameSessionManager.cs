@@ -77,6 +77,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         m_localPlayer = SpawnVehicle(m_spawnPosition,Quaternion.identity);
         Debug.LogWarning("BadCode");
         //Shouldnt be accessing public variables like this
+        m_localPlayer.GetComponent<NetObject>().Init(1, false);
         m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
         UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
         localCamera.SetTarget(m_localPlayer.transform);
