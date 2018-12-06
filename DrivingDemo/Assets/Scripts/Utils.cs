@@ -17,9 +17,26 @@ public static class Utils
         return list == null || list.Count == 0;
     }
 
-    internal static void DrawCross(Vector3 m_spawnPosition,Color colorIn)
+    internal static void DrawCross(Vector3 m_spawnPosition, Color colorIn)
     {
         Debug.DrawLine(m_spawnPosition + (Vector3.left * 0.5f), m_spawnPosition + (Vector3.right * 0.5f), colorIn);
         Debug.DrawLine(m_spawnPosition + (Vector3.back * 0.5f), m_spawnPosition + (Vector3.forward * 0.5f), colorIn);
+    }
+
+
+    public class Pair<T, U>
+    {
+        public Pair()
+        {
+        }
+
+        public Pair(T first, U second)
+        {
+            this.First = first;
+            this.Second = second;
+        }
+
+        public T First { get; set; }
+        public U Second { get; set; }
     }
 }

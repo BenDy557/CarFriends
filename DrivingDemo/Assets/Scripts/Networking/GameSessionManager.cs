@@ -18,11 +18,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private Vehicle m_localPlayer = null;
     private List<Vehicle> m_players = new List<Vehicle>();
 
-    /*private NetworkRole m_role = NetworkRole.NONE;
-    private bool SessionStarted { get { return m_role != NetworkRole.NONE; } }*/
-
     private void OnEnable()
     {
+        this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
         this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
     }
 

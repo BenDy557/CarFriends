@@ -29,19 +29,30 @@ public class NetworkManager : Singleton<NetworkManager>
         {"HomePC-wifi", "192.168.0.7" },
     };
 
-    private int port = 2349;
-    private System.Net.IPEndPoint m_remoteEndPoint;
-    private UdpClient m_udpClient;
+    private int startPort = 4925;
+    private Dictionary<int, UdpClient> m_sockets;
+           
 
-
-
-
+    //Server broadcast socket
     private float m_broadcastInterval = 0.5f;
     private float m_broadcastMsgTimer = 0f;
-    private int m_broadcastPort;
+    private int m_broadcastPort = 4925;
     private System.Net.IPEndPoint m_broadcastEndPoint;
     private UdpClient m_broadcastSocket;
-    ////////////////////////
+    
+
+    private IEnumerable<UdpClient> AllSockets
+    {
+        get
+        {
+            for (int i = 0; i < m_sockets.Count; i++)
+            {
+                yield return m_sockets[i];
+            }
+
+            yield return m_broadcastSocket;
+        }
+    }
 
     public void OnEnable()
     {
@@ -57,35 +68,21 @@ public class NetworkManager : Singleton<NetworkManager>
             Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
         }
 
-
-
-
-
-
-        m_broadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
-        m_broadcastSocket = new UdpClient(m_broadcastEndPoint);
-        m_broadcastSocket.Client.Blocking = false;
-        m_broadcastSocket.Client.MulticastLoopback = true;
-
-
-
-
-
-
-        
-
-        System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
+        /*System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
         m_remoteEndPoint = new IPEndPoint(ipAdd, port);
         m_udpClient = new UdpClient(port);
         m_udpClient.Client.Blocking = false;
-        m_udpClient.Client.MulticastLoopback = true;
+        m_udpClient.Client.MulticastLoopback = true;*/
         //m_udpClient.Client.SetSocketOption(SocketOptionLevel.Udp, SocketOptionName.UseLoopback, true);
     }
 
     private void OnDisable()
     {
         Debug.Log("Closed");
-        m_udpClient.Close();
+        foreach (UdpClient socket in m_sockets.Values)
+        {
+            socket.Client.Close();
+        }
     }
 
     private void Update()
@@ -101,8 +98,6 @@ public class NetworkManager : Singleton<NetworkManager>
                 break;
         }
 
-
-
         ReceiveMessage();
     }
 
@@ -113,6 +108,13 @@ public class NetworkManager : Singleton<NetworkManager>
             return;
 
         m_networkRole = NetworkRole.SERVER;
+
+        m_broadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
+        m_broadcastSocket = new UdpClient(m_broadcastEndPoint);
+        m_broadcastSocket.Client.Blocking = false;
+        m_broadcastSocket.Client.MulticastLoopback = true;
+
+
         Unibus.Dispatch(EventTags.OnServerStart);
     }
 
@@ -139,9 +141,9 @@ public class NetworkManager : Singleton<NetworkManager>
         m_broadcastMsgTimer -= Time.unscaledDeltaTime;
     }
 
-    private void SendRawData(byte[] dataToSend)
+    private void SendRawData(UdpClient socket, byte[] dataToSend)
     {
-        m_udpClient.Send(dataToSend, dataToSend.Length, m_remoteEndPoint);
+        socket.Send(dataToSend, dataToSend.Length);
         Debug.Log("Message Sent");
     }
 
@@ -149,21 +151,24 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         byte[] rawDataReceived;
 
-        while (true)
+        foreach (UdpClient socket in AllSockets)
         {
-            try
+            while (true)
             {
-                IPEndPoint senderEndPoint = null;
-                rawDataReceived = m_udpClient.Receive(ref senderEndPoint);
-            }
-            catch
-            {
-                //nothing
-                return;
-            }
+                try
+                {
+                    IPEndPoint senderEndPoint = null;
+                    rawDataReceived = socket.Receive(ref senderEndPoint);
+                }
+                catch
+                {
+                    //nothing
+                    return;
+                }
 
-            NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
-            DispatchNetworkEvents(networkDataReceived);
+                NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
+                DispatchNetworkEvents(networkDataReceived);
+            }
         }
     }
 
