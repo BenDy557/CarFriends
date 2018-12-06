@@ -7,22 +7,27 @@ namespace UnibusEvent
     {
         protected Action<bool> subscribeCaller;
 
-        public void SetSubscribeCaller<T>(object tag, OnEvent<T> onEvent)
+        public void SetSubscribeCaller<T>(string tag, OnEvent<T> onEvent)
         {
-
             subscribeCaller = (bool active) =>
             {
                 if (active)
-                {
                     UnibusObject.Instance.Subscribe(tag, onEvent);
-                }
-                else
-                {
-                    if (UnibusObject.IsExistInstance())
-                    {
-                        UnibusObject.Instance.Unsubscribe(tag, onEvent);
-                    }
-                }
+                else if (UnibusObject.IsExistInstance())
+                    UnibusObject.Instance.Unsubscribe(tag, onEvent);
+            };
+
+            subscribeCaller(true);
+        }
+
+        public void SetSubscribeCaller(string tag, OnEvent onEvent)
+        {
+            subscribeCaller = (bool active) =>
+            {
+                if (active)
+                    UnibusObject.Instance.Subscribe(tag, onEvent);
+                else if (UnibusObject.IsExistInstance())
+                    UnibusObject.Instance.Unsubscribe(tag, onEvent);
             };
 
             subscribeCaller(true);

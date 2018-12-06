@@ -66,6 +66,7 @@ public struct NetworkData
         CLOSE,//Close game
         LOCOMOTION,//velocity and position and rotation
         INPUT,//input state
+        SERVER_BROADCAST,
     }
 
 }

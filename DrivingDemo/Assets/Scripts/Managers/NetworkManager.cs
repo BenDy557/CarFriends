@@ -11,7 +11,11 @@ using UnibusEvent;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
-    private IPAddress m_localIPAddr;
+    private NetworkRole m_networkRole = NetworkRole.NONE;
+    public NetworkRole NetworkRole { get { return m_networkRole; } }
+    private bool NetworkRoleStarted { get { return m_networkRole != NetworkRole.NONE; } }
+
+    private List<IPAddress> m_localIPAddrs = new List<IPAddress>();
 
     [SerializeField, NaughtyAttributes.Dropdown("m_savedIPAddr")]
     private string m_targetIPAddr = "127.0.0.1";
@@ -20,29 +24,55 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         {"LocalHost", "127.0.0.1"},
         {"WorkPC-wifi", "192.168.3.161" },
-        {"WorkMac-wifi", "192.168.3.156" },
+        {"WorkMac-wifi", "192.168.3.164" },
         {"HomeMac-wifi", "192.168.0.9" },
         {"HomePC-wifi", "192.168.0.7" },
     };
 
     private int port = 2349;
     private System.Net.IPEndPoint m_remoteEndPoint;
-
     private UdpClient m_udpClient;
+
+
+
+
+    private float m_broadcastInterval = 0.5f;
+    private float m_broadcastMsgTimer = 0f;
+    private int m_broadcastPort;
+    private System.Net.IPEndPoint m_broadcastEndPoint;
+    private UdpClient m_broadcastSocket;
     ////////////////////////
 
     public void OnEnable()
     {
+        //Assign local IPs
         IPHostEntry tempHostEntry = Dns.GetHostEntry(Dns.GetHostName());
         foreach (IPAddress tempIP in tempHostEntry.AddressList)
         {
             if (tempIP.AddressFamily == AddressFamily.InterNetwork)
             {
-                m_localIPAddr = tempIP;
+                m_localIPAddrs.Add(tempIP);
             }
 
             Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
         }
+
+
+
+
+
+
+        m_broadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
+        m_broadcastSocket = new UdpClient(m_broadcastEndPoint);
+        m_broadcastSocket.Client.Blocking = false;
+        m_broadcastSocket.Client.MulticastLoopback = true;
+
+
+
+
+
+
+        
 
         System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
         m_remoteEndPoint = new IPEndPoint(ipAdd, port);
@@ -60,7 +90,53 @@ public class NetworkManager : Singleton<NetworkManager>
 
     private void Update()
     {
+        switch (m_networkRole)
+        {
+            case NetworkRole.NONE:
+                break;
+            case NetworkRole.SERVER:
+            BroadcastUpdate();
+                break;
+            case NetworkRole.CLIENT:
+                break;
+        }
+
+
+
         ReceiveMessage();
+    }
+
+    [Button]
+    private void StartServer()
+    {
+        if (NetworkRoleStarted)
+            return;
+
+        m_networkRole = NetworkRole.SERVER;
+        Unibus.Dispatch(EventTags.OnServerStart);
+    }
+
+    [Button]
+    private void StartClient()
+    {
+        if (NetworkRoleStarted)
+            return;
+
+        m_networkRole = NetworkRole.CLIENT;
+        Unibus.Dispatch(EventTags.OnClientStart);
+    }
+
+    private void BroadcastUpdate()
+    {
+        if (m_broadcastMsgTimer < 0)
+        {
+            m_broadcastMsgTimer = m_broadcastInterval;
+            foreach (IPAddress ip in m_localIPAddrs)
+            {
+                SendData(new NetworkData(NetworkData.NetworkMessageType.SERVER_BROADCAST, ip.ToString()));
+            }
+        }
+        m_broadcastMsgTimer -= Time.unscaledDeltaTime;
     }
 
     private void SendRawData(byte[] dataToSend)
@@ -115,6 +191,9 @@ public class NetworkManager : Singleton<NetworkManager>
             case NetworkData.NetworkMessageType.INPUT:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
                 break;
+            case NetworkData.NetworkMessageType.SERVER_BROADCAST:
+                Debug.Log("BroadcastReceived");
+                break;
         }
     }
 
@@ -156,4 +235,11 @@ public class NetworkManager : Singleton<NetworkManager>
         }
         return null;
     }
+}
+
+public enum NetworkRole
+{
+    NONE,
+    SERVER,
+    CLIENT,
 }

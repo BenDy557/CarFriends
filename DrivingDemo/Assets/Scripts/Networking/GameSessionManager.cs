@@ -18,28 +18,25 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private Vehicle m_localPlayer = null;
     private List<Vehicle> m_players = new List<Vehicle>();
 
-    public enum Role
+    /*private NetworkRole m_role = NetworkRole.NONE;
+    private bool SessionStarted { get { return m_role != NetworkRole.NONE; } }*/
+
+    private void OnEnable()
     {
-        NONE,
-        SERVER,
-        CLIENT,
+        this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
     }
-
-    private Role m_role = Role.NONE;
-    private bool SessionStarted { get { return m_role != Role.NONE; } }
-
 
     private void Update()
     {
         //receive updates from all clients
-        switch (m_role)
+        switch (NetworkManager.Instance.NetworkRole)
         {
-            case Role.NONE:
+            case NetworkRole.NONE:
                 break;
-            case Role.SERVER:
+            case NetworkRole.SERVER:
                 ServerUpdate();
                 break;
-            case Role.CLIENT:
+            case NetworkRole.CLIENT:
                 ClientUpdate();
                 break;
         }
@@ -63,14 +60,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
     }
 
-
-    [Button]
     private void StartServer()
     {
-        if (SessionStarted)
-            return;
-        m_role = Role.SERVER;
-
         //subsribe to join message
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Join, PlayerJoin);
 
@@ -86,11 +77,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [Button]
     private void StartClient()
     {
-        if (SessionStarted)
-            return;
-        m_role = Role.CLIENT;
-
-
         m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
         Debug.LogWarning("BadCode");
         //Shouldnt be accessing public variables like this
@@ -105,7 +91,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
         NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, 2, locomotionData);
 
-        NetworkManager.instance.SendData(tempData);
+        NetworkManager.Instance.SendData(tempData);
     }
 
     /*[Button]

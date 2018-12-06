@@ -2,27 +2,27 @@
 
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
-    protected static T instance;
+    private static T instance;
+
+    private static bool m_triedToFind = false;
 
     public static T Instance
     {
         get
         {
-            if (instance == null)
+            if (instance == null && !m_triedToFind)
             {
                 instance = (T)FindObjectOfType(typeof(T));
 
                 if (instance == null)
-                {
-                    Debug.LogWarning(typeof(T) + "is nothing");
-                }
+                    m_triedToFind = true;
             }
 
             return instance;
         }
     }
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         CheckInstance();
     }
@@ -34,11 +34,12 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
             instance = (T)this;
             return true;
         }
-        else if (Instance == this)
+        else if (instance == this)
         {
             return true;
         }
 
+        Debug.LogWarning("Destroying duplicate " + typeof(T) + " singleton!", gameObject);
         Destroy(this);
         return false;
     }
@@ -46,5 +47,16 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     public static bool IsExistInstance()
     {
         return instance != null;
+    }
+
+    public void Forget()
+    {
+        instance = null;
+        m_triedToFind = false;
+    }
+
+    public void OnDestroy()
+    {
+        Forget();
     }
 }

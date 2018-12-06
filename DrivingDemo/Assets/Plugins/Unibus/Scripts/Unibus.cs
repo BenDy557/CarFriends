@@ -7,34 +7,34 @@ namespace UnibusEvent
 {
     public static class Unibus
     {
-        public static void Subscribe<T>(OnEvent<T> eventCallback)
+        public static void Subscribe<T>(string tag, OnEvent<T> eventCallback)
         {
-            UnibusObject.Instance.Subscribe<T>(eventCallback);
+            UnibusObject.Instance.Subscribe(tag, eventCallback);
         }
 
-        public static void Subscribe<T>(object tag, OnEvent<T> eventCallback)
+        public static void Subscribe(string tag, OnEvent eventCallback)
         {
-            UnibusObject.Instance.Subscribe<T>(tag, eventCallback);
+            UnibusObject.Instance.Subscribe(tag, eventCallback);
         }
 
-        public static void Unsubscribe<T>(OnEvent<T> eventCallback)
+        public static void Unsubscribe<T>(string tag, OnEvent<T> eventCallback)
         {
-            UnibusObject.Instance.Unsubscribe<T>(UnibusObject.DefaultTag, eventCallback);
+            UnibusObject.Instance.Unsubscribe(tag, eventCallback);
         }
 
-        public static void Unsubscribe<T>(object tag, OnEvent<T> eventCallback)
+        public static void Unsubscribe(string tag, OnEvent eventCallback)
         {
-            UnibusObject.Instance.Unsubscribe<T>(tag, eventCallback);
+            UnibusObject.Instance.Unsubscribe(tag, eventCallback);
         }
 
-        public static void Dispatch<T>(T action)
-        {
-            UnibusObject.Instance.Dispatch(UnibusObject.DefaultTag, action);
-        }
-
-        public static void Dispatch<T>(object tag, T action)
+        public static void Dispatch<T>(string tag, T action)
         {
             UnibusObject.Instance.Dispatch(tag, action);
+        }
+
+        public static void Dispatch(string tag)
+        {
+            UnibusObject.Instance.Dispatch(tag);
         }
     }
 }
