@@ -10,6 +10,7 @@ public static class EventTags
     public static string NetDataReceived_Join = "NetDataReceived_Join";
     public static string NetDataReceived_Locomotion= "NetDataReceived_Locomotion";
     public static string NetDataReceived_Input = "NetDataReceived_Input";
+    public static string NetDataReceived_Server_Brodacast = "NetDataReceived_Server_Brodacast";
 
     public static string OnServerStart = "OnServerStart";
     public static string OnClientStart = "OnClientStart";
@@ -17,6 +18,5 @@ public static class EventTags
 
     #region RaceEvents
     public static string CheckpointReached = "CheckpointReached";
-
     #endregion
 }

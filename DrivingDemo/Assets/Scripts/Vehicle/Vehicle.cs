@@ -4,7 +4,7 @@ using UnityEngine;
 using UnibusEvent;
 using NaughtyAttributes;
 
-public class Vehicle : MonoBehaviour
+public class Vehicle : MonoBehaviour, INetObject
 {
     //[SerializeField]
     //private VehicleSetUpData vehicleSetupData;
@@ -75,20 +75,29 @@ public class Vehicle : MonoBehaviour
         m_rigidBody = GetComponent<Rigidbody>();
     }
 
-    private void Update()
+    /*private void Update()
     {
         if (!m_netObject.IsNetworkControlled)
         {
             SendLocomotionInfo();
         }
-    }
+    }*/
 
     #region Network
-    [Button]
-    private void SendLocomotionInfo()
+
+
+    public void ReceiveNetworkData(NetworkData networkData) { }
+    public void ReceiveMessageData(NetworkData networkData) { }
+    public void ReceiveLocomotionData(NetworkData networkData) { }
+    public void ReceiveInputData(NetworkData networkData) { }
+    public void ReceiveJoinData(NetworkData networkData) { }
+
+    public NetworkData GetNetworkData()
     {
-        LocomotionData tempData = new LocomotionData(m_rigidBody.position,m_rigidBody.rotation,m_rigidBody.velocity,m_rigidBody.angularVelocity);
-        NetworkManager.Instance.SendData(new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, tempData));
+        LocomotionData tempData = new LocomotionData(m_rigidBody.position, m_rigidBody.rotation, m_rigidBody.velocity, m_rigidBody.angularVelocity);
+        //NetworkManager.Instance.SendData(new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, tempData));
+
+        return new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, tempData);
     }
 
     private void ReceiveLocomotionInfo(NetworkData dataIn)

@@ -30,16 +30,18 @@ public class NetworkManager : Singleton<NetworkManager>
     };
 
     private int startPort = 4925;
-    private Dictionary<int, UdpClient> m_sockets;
+    private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
            
 
     //Server broadcast socket
     private float m_broadcastInterval = 0.5f;
     private float m_broadcastMsgTimer = 0f;
-    private int m_broadcastPort = 4925;
-    private System.Net.IPEndPoint m_broadcastEndPoint;
+    private int m_broadcastPort = 5555;
+    private IPEndPoint m_broadcastEndPoint;
     private UdpClient m_broadcastSocket;
-    
+
+    private IPEndPoint m_receiveBroadcastEndPoint;
+    private UdpClient m_receiveBroadcastSocket;
 
     private IEnumerable<UdpClient> AllSockets
     {
@@ -109,11 +111,16 @@ public class NetworkManager : Singleton<NetworkManager>
 
         m_networkRole = NetworkRole.SERVER;
 
-        m_broadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
-        m_broadcastSocket = new UdpClient(m_broadcastEndPoint);
+        //m_broadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
+        //m_broadcastEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), m_broadcastPort);
+
+        m_broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
+
+        m_broadcastSocket = new UdpClient();
+        m_broadcastSocket.EnableBroadcast = true;
+        m_broadcastSocket.Connect(m_broadcastEndPoint);
         m_broadcastSocket.Client.Blocking = false;
         m_broadcastSocket.Client.MulticastLoopback = true;
-
 
         Unibus.Dispatch(EventTags.OnServerStart);
     }
@@ -125,6 +132,13 @@ public class NetworkManager : Singleton<NetworkManager>
             return;
 
         m_networkRole = NetworkRole.CLIENT;
+
+        m_receiveBroadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
+        m_receiveBroadcastSocket = new UdpClient(m_receiveBroadcastEndPoint);
+        m_receiveBroadcastSocket.Client.Blocking = false;
+        m_receiveBroadcastSocket.EnableBroadcast = true;
+        m_receiveBroadcastSocket.Client.MulticastLoopback = true;
+
         Unibus.Dispatch(EventTags.OnClientStart);
     }
 
@@ -135,7 +149,7 @@ public class NetworkManager : Singleton<NetworkManager>
             m_broadcastMsgTimer = m_broadcastInterval;
             foreach (IPAddress ip in m_localIPAddrs)
             {
-                SendData(new NetworkData(NetworkData.NetworkMessageType.SERVER_BROADCAST, ip.ToString()));
+                SendData(m_broadcastSocket, new NetworkData(NetworkData.NetworkMessageType.SERVER_BROADCAST, ip.ToString()));
             }
         }
         m_broadcastMsgTimer -= Time.unscaledDeltaTime;
@@ -197,6 +211,7 @@ public class NetworkManager : Singleton<NetworkManager>
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
                 break;
             case NetworkData.NetworkMessageType.SERVER_BROADCAST:
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, networkData);
                 Debug.Log("BroadcastReceived");
                 break;
         }
@@ -222,10 +237,10 @@ public class NetworkManager : Singleton<NetworkManager>
         return rawData;
     }
 
-    public void SendData(NetworkData data)
+    public void SendData(UdpClient socket, NetworkData data)
     {
         byte[] buffer = ConvertToRawData(data);
-        SendRawData(buffer);
+        SendRawData(socket, buffer);
     }
 
     public static string GetLocalIPAddress()

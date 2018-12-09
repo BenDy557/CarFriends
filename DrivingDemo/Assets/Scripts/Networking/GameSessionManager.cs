@@ -21,7 +21,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private void OnEnable()
     {
         this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
-        this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
     }
 
     private void Update()
@@ -72,24 +71,28 @@ public class GameSessionManager : Singleton<GameSessionManager>
         localCamera.SetTarget(m_localPlayer.transform);
     }
 
-    [Button]
     private void StartClient()
     {
-        m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
+        /*m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
         Debug.LogWarning("BadCode");
         //Shouldnt be accessing public variables like this
         m_localPlayer.GetComponent<NetObject>().Init(2, false);
         m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
         UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
-        localCamera.SetTarget(m_localPlayer.transform);
+        localCamera.SetTarget(m_localPlayer.transform);*/
+
+        //LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
+        //NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, 2, locomotionData);
+
+        //NetworkManager.Instance.SendData(tempData);
 
 
-        //LocomotionData locomotionData = new LocomotionData(m_localPlayer.transform.position, m_localPlayer.transform.rotation);
-        //NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, m_localPlayer.NetID, locomotionData);
-        LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
-        NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, 2, locomotionData);
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, ServerFound);
+    }
 
-        NetworkManager.Instance.SendData(tempData);
+    private void ServerFound(NetworkData dataIn)
+    {
+        Debug.Log("broadcast from: " + dataIn.Message);
     }
 
     /*[Button]
