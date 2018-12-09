@@ -52,7 +52,11 @@ public class NetworkManager : Singleton<NetworkManager>
                 yield return m_sockets[i];
             }
 
-            yield return m_broadcastSocket;
+            if (m_broadcastSocket != null)
+                yield return m_broadcastSocket;
+
+            if (m_receiveBroadcastSocket != null)
+                yield return m_receiveBroadcastSocket;
         }
     }
 
@@ -81,7 +85,7 @@ public class NetworkManager : Singleton<NetworkManager>
     private void OnDisable()
     {
         Debug.Log("Closed");
-        foreach (UdpClient socket in m_sockets.Values)
+        foreach (UdpClient socket in AllSockets)
         {
             socket.Client.Close();
         }
@@ -118,9 +122,9 @@ public class NetworkManager : Singleton<NetworkManager>
 
         m_broadcastSocket = new UdpClient();
         m_broadcastSocket.EnableBroadcast = true;
-        m_broadcastSocket.Connect(m_broadcastEndPoint);
         m_broadcastSocket.Client.Blocking = false;
         m_broadcastSocket.Client.MulticastLoopback = true;
+        m_broadcastSocket.Connect(m_broadcastEndPoint);
 
         Unibus.Dispatch(EventTags.OnServerStart);
     }
@@ -133,12 +137,12 @@ public class NetworkManager : Singleton<NetworkManager>
 
         m_networkRole = NetworkRole.CLIENT;
 
-        m_receiveBroadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
-        m_receiveBroadcastSocket.EnableBroadcast = true;
+        m_receiveBroadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
         m_receiveBroadcastSocket = new UdpClient();
-        m_receiveBroadcastSocket.Connect(m_receiveBroadcastEndPoint);
+        m_receiveBroadcastSocket.EnableBroadcast = true;
         m_receiveBroadcastSocket.Client.Blocking = false;
         m_receiveBroadcastSocket.Client.MulticastLoopback = true;
+        m_receiveBroadcastSocket.Connect(m_receiveBroadcastEndPoint);
 
         Unibus.Dispatch(EventTags.OnClientStart);
     }
