@@ -134,9 +134,10 @@ public class NetworkManager : Singleton<NetworkManager>
         m_networkRole = NetworkRole.CLIENT;
 
         m_receiveBroadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
-        m_receiveBroadcastSocket = new UdpClient(m_receiveBroadcastEndPoint);
-        m_receiveBroadcastSocket.Client.Blocking = false;
         m_receiveBroadcastSocket.EnableBroadcast = true;
+        m_receiveBroadcastSocket = new UdpClient();
+        m_receiveBroadcastSocket.Connect(m_receiveBroadcastEndPoint);
+        m_receiveBroadcastSocket.Client.Blocking = false;
         m_receiveBroadcastSocket.Client.MulticastLoopback = true;
 
         Unibus.Dispatch(EventTags.OnClientStart);
