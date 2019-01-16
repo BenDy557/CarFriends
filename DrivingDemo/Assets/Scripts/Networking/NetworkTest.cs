@@ -20,9 +20,9 @@ class NetworkTest : MonoBehaviour
             return;
         }
 
-        NetworkData data = new NetworkData(NetworkData.NetworkMessageType.MESSAGE, message);
+        //NetworkData data = new NetworkData(NetworkData.NetworkDataType, message);
         //NetworkManager.Instance.SendData(data);
 
-        Debug.Log("Message Sent" + data.Message);
+        //Debug.Log("Message Sent" + data.Message);
     }
 }

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
 using UnibusEvent;
+using System.Net.Sockets;
 
 public class GameSessionManager : Singleton<GameSessionManager>
 {
     [SerializeField]
-    private Vector3 m_spawnPosition;
+    private Transform m_spawnPoint;
 
     [SerializeField, Required]
     private GameObject m_vehiclePrefab = null;
@@ -16,11 +17,12 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
     [SerializeField]
     private Vehicle m_localPlayer = null;
-    private List<Vehicle> m_players = new List<Vehicle>();
+    private List<NetworkPlayer> m_players = new List<NetworkPlayer>();
 
     private void OnEnable()
     {
         this.BindUntilDestroy(EventTags.OnServerStart, StartServer);
+        this.BindUntilDestroy(EventTags.OnClientStart, StartClient);
     }
 
     private void Update()
@@ -60,39 +62,26 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private void StartServer()
     {
         //subsribe to join message
-        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Join, PlayerJoin);
-
-        m_localPlayer = SpawnVehicle(m_spawnPosition,Quaternion.identity);
-        Debug.LogWarning("BadCode");
-        //Shouldnt be accessing public variables like this
-        m_localPlayer.GetComponent<NetObject>().Init(1, false);
-        m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
-        UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
-        localCamera.SetTarget(m_localPlayer.transform);
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
+        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
     }
 
     private void StartClient()
     {
-        /*m_localPlayer = SpawnVehicle(m_spawnPosition, Quaternion.identity);
-        Debug.LogWarning("BadCode");
-        //Shouldnt be accessing public variables like this
-        m_localPlayer.GetComponent<NetObject>().Init(2, false);
-        m_localPlayer.GetComponent<VehicleController>().isPlayer = true;
-        UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
-        localCamera.SetTarget(m_localPlayer.transform);*/
-
-        //LocomotionData locomotionData = new LocomotionData(m_spawnPosition, Quaternion.identity);
-        //NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.JOIN, 2, locomotionData);
-
-        //NetworkManager.Instance.SendData(tempData);
-
-
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, ServerFound);
     }
 
     private void ServerFound(NetworkData dataIn)
     {
+        //I've received a brodcast but has my server socket already been set up
+        if (NetworkManager.Instance.IsServerSet)
+            return;
+
         Debug.Log("broadcast from: " + dataIn.Message);
+        NetworkManager.Instance.SetServerAddress(dataIn.Message);
+
+        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, m_localPlayer.GetNetworkData().LocomotionData);
+        NetworkManager.Instance.SendDataToServer(tempData);
     }
 
     /*[Button]
@@ -105,21 +94,81 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
     }*/
 
-    private void PlayerJoin(NetworkData dataIn)
+    private void NetworkMessageReceived(NetworkData dataIn)
     {
-        Debug.LogWarning("BadCode");
-        //Should use dedicated spawner
-        Vehicle spawnedVehicle = SpawnVehicle(dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation);
-        spawnedVehicle.NetObject.Init(dataIn.NetworkObjectID, true);
+        switch (dataIn.MessageType)
+        {
+            case NetworkData.NetworkMessageType.NONE:
+                break;
+            case NetworkData.NetworkMessageType.JOIN_REQUEST:
+                OnJoinRequest(dataIn);
+                break;
+            case NetworkData.NetworkMessageType.JOIN_DENIED:
+                break;
+            case NetworkData.NetworkMessageType.JOIN_ACCEPT:
+                break;
+        }
     }
 
-    private Vehicle SpawnVehicle(Vector3 position, Quaternion rotation)
+    private void OnJoinRequest(NetworkData dataIn)
     {
-        return Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
+        Debug.LogWarning("BadCode");
+
+        string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
+        UdpClient socket = NetworkManager.Instance.AddClient(dataIn.Message);
+        Debug.LogWarning("BadCode");
+        Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation);//TODO//Should use dedicated spawner
+        //need to send a reply to new player, message should specify network id.
+
+        NetworkPlayer networkPlayer = new NetworkPlayer(playerName,socket,vehicle);
+        m_players.Add(networkPlayer);
+        //On join request accepted
+        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_ACCEPT);
+        NetworkManager.Instance.SendDataToClient(networkPlayer.Socket, tempData);
+    }
+
+    //TODO//should use dedicated spawner
+    private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1)
+    {
+        Vehicle vehicle = Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
+
+        Debug.LogWarning("BadCode");
+        //Shouldnt be accessing public variables like this
+        if (isPlayer)
+        {
+            m_localPlayer = vehicle;
+            vehicle.NetObject.Init(false, netID);
+            vehicle.GetComponent<VehicleController>().isPlayer = true;
+            UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
+            localCamera.SetTarget(vehicle.transform);
+        }
+        else
+        {
+            vehicle.NetObject.Init(true, netID);
+        }
+
+        return vehicle;
     }
 
     private void OnDrawGizmos()
     {
-        Utils.DrawCross(m_spawnPosition,Color.magenta);
+        Utils.DrawCross(m_spawnPoint.position, Color.magenta);
     }
+}
+
+public class NetworkPlayer
+{
+    public NetworkPlayer(string nameIn, UdpClient socketIn, Vehicle vehicleIn)
+    {
+        m_userName = nameIn;
+        m_socket = socketIn;
+        m_vehicle = vehicleIn;
+    }
+
+    private string m_userName;
+    public string UserName { get { return m_userName; } }
+    private UdpClient m_socket;
+    public UdpClient Socket { get { return m_socket; } }
+    private Vehicle m_vehicle;
+    public Vehicle Vehicle { get { return m_vehicle; } }
 }

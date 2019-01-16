@@ -2,73 +2,103 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
+
 public struct NetworkData
 {
-    public NetworkMessageType MessageType { get; private set; }
+    public NetworkDataType DataType { get; private set; }
     public int NetworkObjectID { get; private set; }
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
     public string Message;
-    public LocomotionData LocomotionData { get; private set;}
+    public LocomotionData LocomotionData { get; private set; }
+    public NetworkMessageType MessageType { get; private set; }
 
     //public VehicleInput Input;
 
-    public NetworkData(NetworkMessageType type, int networkObjectID)
+    public NetworkData(NetworkDataType type, int networkObjectID)
     {
-        MessageType = type;
+        DataType = type;
         NetworkObjectID = networkObjectID;
         Message = null;
         LocomotionData = new LocomotionData();
+        MessageType = NetworkMessageType.NONE;
         //Input = null;
     }
 
-    public NetworkData(NetworkMessageType type, int networkObjectID, LocomotionData locomotionData, VehicleInput input)
+    public NetworkData(NetworkDataType type, int networkObjectID, LocomotionData locomotionData, VehicleInput input)
     {
-        MessageType = type;
+        DataType = type;
         NetworkObjectID = networkObjectID;
         Message = null;
         LocomotionData = locomotionData;
+        MessageType = NetworkMessageType.NONE;
         //Input = input;
     }
 
-    public NetworkData(NetworkMessageType type, int networkObjectID, LocomotionData locomotionData)
+    public NetworkData(NetworkDataType type, int networkObjectID, LocomotionData locomotionData)
     {
-        MessageType = type;
+        DataType = type;
         NetworkObjectID = networkObjectID;
         Message = null;
         LocomotionData = locomotionData;
+        MessageType = NetworkMessageType.NONE;
         //Input = null;
     }
 
-    public NetworkData(NetworkMessageType type, int networkObjectID, VehicleInput input)
+    public NetworkData(NetworkDataType type, int networkObjectID, VehicleInput input)
     {
-        MessageType = type;
+        DataType = type;
         NetworkObjectID = networkObjectID;
         Message = null;
         LocomotionData = new LocomotionData();
+        MessageType = NetworkMessageType.NONE;
         //Input = input;
     }
 
-    public NetworkData(NetworkMessageType type, string message)
+    public NetworkData(NetworkDataType type, string message)
     {
-        MessageType = type;
+        DataType = type;
         NetworkObjectID = -1;
         Message = message;
         LocomotionData = new LocomotionData();
+        MessageType = NetworkMessageType.NONE;
         //Input = null;
     }
 
+    public NetworkData(NetworkDataType type, NetworkMessageType messageType)
+    {
+        DataType = type;
+        NetworkObjectID = -1;
+        Message = null;
+        LocomotionData = new LocomotionData();
+        MessageType = messageType;
+        //Input = null;
+    }
 
+    public NetworkData(NetworkDataType type, NetworkMessageType messageType, LocomotionData locomotionData)
+    {
+        DataType = type;
+        NetworkObjectID = -1;
+        Message = null;
+        LocomotionData = locomotionData;
+        MessageType = messageType;
+        //Input = null;
+    }
+
+    public enum NetworkDataType
+    {
+        NETWORK_MESSAGE,//join, leave, kick, 
+        SERVER_BROADCAST,//hey guys, I'm here
+        LOCOMOTION,//velocity and position and rotation
+        INPUT,//input state
+    }
 
     public enum NetworkMessageType
     {
-        MESSAGE,//just a message
-        JOIN,//Player join
-        CLOSE,//Close game
-        LOCOMOTION,//velocity and position and rotation
-        INPUT,//input state
-        SERVER_BROADCAST,
+        NONE,
+        JOIN_REQUEST,//send locomotion data
+        JOIN_ACCEPT,//send back netID
+        JOIN_DENIED,
     }
-
 }
 
 public struct LocomotionData
