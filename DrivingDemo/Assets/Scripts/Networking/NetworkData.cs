@@ -64,10 +64,10 @@ public struct NetworkData
         //Input = null;
     }
 
-    public NetworkData(NetworkDataType type, NetworkMessageType messageType)
+    public NetworkData(NetworkDataType type, NetworkMessageType messageType, int networkObjectID = -1)
     {
         DataType = type;
-        NetworkObjectID = -1;
+        NetworkObjectID = networkObjectID;
         Message = null;
         LocomotionData = new LocomotionData();
         MessageType = messageType;

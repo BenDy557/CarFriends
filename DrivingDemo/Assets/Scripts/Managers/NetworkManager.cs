@@ -234,8 +234,8 @@ public class NetworkManager : Singleton<NetworkManager>
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Network_Message, networkData);
                 break;
             case NetworkData.NetworkDataType.SERVER_BROADCAST:
-                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, networkData);
                 Debug.Log("BroadcastReceived");
+                Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, networkData);
                 break;
         }
     }
@@ -282,7 +282,8 @@ public class NetworkManager : Singleton<NetworkManager>
     public void SetServerAddress(string ipAddress)
     {
         m_serverEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
-        m_serverSocket = new UdpClient(m_serverEndPoint);
+        m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
+        m_serverSocket.Connect(m_serverEndPoint);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;

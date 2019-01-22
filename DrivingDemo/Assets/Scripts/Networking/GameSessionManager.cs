@@ -41,59 +41,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
     }
 
-    private void ServerUpdate()
-    {
-        //wait for connection messages
-        //send player data to all clients
-        /*for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
-        {
-            for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
-            {
-
-            }
-        }*/
-    }
-
-    private void ClientUpdate()
-    {
-
-    }
-
-    private void StartServer()
-    {
-        //subsribe to join message
-        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
-        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
-    }
-
-    private void StartClient()
-    {
-        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, ServerFound);
-    }
-
-    private void ServerFound(NetworkData dataIn)
-    {
-        //I've received a brodcast but has my server socket already been set up
-        if (NetworkManager.Instance.IsServerSet)
-            return;
-
-        Debug.Log("broadcast from: " + dataIn.Message);
-        NetworkManager.Instance.SetServerAddress(dataIn.Message);
-
-        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, m_localPlayer.GetNetworkData().LocomotionData);
-        NetworkManager.Instance.SendDataToServer(tempData);
-    }
-
-    /*[Button]
-    private void StopSession()
-    {
-        for (int i = 0; i < m_players.Count; i++)
-        {
-            NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.CLOSE, m_players[i].NetID);
-            NetworkManager.instance.SendData(tempData);
-        }
-    }*/
-
     private void NetworkMessageReceived(NetworkData dataIn)
     {
         switch (dataIn.MessageType)
@@ -106,12 +53,48 @@ public class GameSessionManager : Singleton<GameSessionManager>
             case NetworkData.NetworkMessageType.JOIN_DENIED:
                 break;
             case NetworkData.NetworkMessageType.JOIN_ACCEPT:
+                SyncSessionWithServer(dataIn);
                 break;
         }
     }
 
+    //SERVER//////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    #region ServerMethods
+    private void StartServer()
+    {
+        //subsribe to join message
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
+        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
+    }
+
+    private void ServerUpdate()
+    {
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.SERVER)
+        {
+            Debug.LogError("NotServer");
+            return;
+        }
+
+        //wait for connection messages
+        //send player data to all clients
+        /*for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
+        {
+            for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
+            {
+
+            }
+        }*/
+    }
+
     private void OnJoinRequest(NetworkData dataIn)
     {
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.SERVER)
+        {
+            Debug.LogError("JoinRequest when not server");
+            return;
+        }
+
         Debug.LogWarning("BadCode");
 
         string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
@@ -120,12 +103,81 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
-        NetworkPlayer networkPlayer = new NetworkPlayer(playerName,socket,vehicle);
+        NetworkPlayer networkPlayer = new NetworkPlayer(playerName, socket, vehicle);
         m_players.Add(networkPlayer);
         //On join request accepted
-        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_ACCEPT);
+        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
+        
         NetworkManager.Instance.SendDataToClient(networkPlayer.Socket, tempData);
     }
+    #endregion
+
+    //CLIENT//////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    #region ClientMethods
+    private void StartClient()
+    {
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, ServerFound);
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
+    }
+
+    private void ClientUpdate()
+    {
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.CLIENT)
+        {
+            Debug.LogError("JoinRequest when not client");
+            return;
+        }
+    }
+
+    private void ServerFound(NetworkData dataIn)
+    {
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.CLIENT)
+        {
+            Debug.LogError("Server found when not client");
+            return;
+        }
+
+        //I've received a brodcast but has my server socket already been set up
+        if (NetworkManager.Instance.IsServerSet)
+            return;
+
+        Debug.Log("broadcast from: " + dataIn.Message);
+        NetworkManager.Instance.SetServerAddress(dataIn.Message);
+        LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
+        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, locomotionData);
+        NetworkManager.Instance.SendDataToServer(tempData);
+    }
+
+    //JOIN_ACCEPT message received
+    private void SyncSessionWithServer(NetworkData dataIn)
+    {
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.CLIENT)
+        {
+            Debug.LogError("cant sync with server unless client");
+            return;
+        }
+
+        //SpawnYourself
+        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation, dataIn.NetworkObjectID);
+    }
+    #endregion
+
+    /*[Button]
+    private void StopSession()
+    {
+        for (int i = 0; i < m_players.Count; i++)
+        {
+            NetworkData tempData = new NetworkData(NetworkData.NetworkMessageType.CLOSE, m_players[i].NetID);
+            NetworkManager.instance.SendData(tempData);
+        }
+    }*/
+
+
+
+    
+
+    
 
     //TODO//should use dedicated spawner
     private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1)
