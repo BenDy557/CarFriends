@@ -95,6 +95,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         }
 
+        Debug.Log("JOIN_REQUEST received");
+
         Debug.LogWarning("BadCode");
 
         string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
@@ -107,8 +109,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
         m_players.Add(networkPlayer);
         //On join request accepted
         NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
-        
+
         NetworkManager.Instance.SendDataToClient(networkPlayer.Socket, tempData);
+        Debug.Log("JOIN_ACCEPT sent");
     }
     #endregion
 
@@ -147,11 +150,14 @@ public class GameSessionManager : Singleton<GameSessionManager>
         LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
         NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, locomotionData);
         NetworkManager.Instance.SendDataToServer(tempData);
+        Debug.Log("JOIN_REQUEST sent");
     }
 
     //JOIN_ACCEPT message received
     private void SyncSessionWithServer(NetworkData dataIn)
     {
+        Debug.Log("JOIN_ACCEPT received");
+
         if (NetworkManager.Instance.NetworkRole != NetworkRole.CLIENT)
         {
             Debug.LogError("cant sync with server unless client");

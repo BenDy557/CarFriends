@@ -123,6 +123,14 @@ public class NetworkManager : Singleton<NetworkManager>
                 break;
         }
 
+        Debug.Log(m_sockets.Count + " CLIENTS");
+        foreach (UdpClient client in m_sockets.Values)
+        {
+            Debug.Log("Client");
+            Debug.Log("LocalEP: " + client.Client.LocalEndPoint);
+            Debug.Log("RemoteEP: " + client.Client.RemoteEndPoint);
+        }
+        
         ReceiveMessage();
     }
 
@@ -269,7 +277,10 @@ public class NetworkManager : Singleton<NetworkManager>
     public void SendDataToServer(NetworkData data)
     {
         if (!IsServerSet)
+        {
+            Debug.LogError("ServerIsNotSet");
             return;
+        }
 
         SendData(m_serverSocket, data);
     }
