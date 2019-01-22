@@ -11,6 +11,30 @@ class NetworkTest : MonoBehaviour
     [SerializeField]
     private string message = "butt";
 
+    [SerializeField]
+    private string m_remoteIpAddress;
+    [SerializeField]
+    private int m_remotePort;
+    
+    UdpClient clientSending;
+    UdpClient clientReceiving;
+
+    private void OnEnable()
+    {
+        clientSending = new UdpClient();
+        clientReceiving = new UdpClient();
+    }
+
+    private void OnDisable()
+    {
+        clientSending.Close();
+        clientSending = null;
+
+        clientReceiving.Close();
+        clientReceiving = null;
+    }
+
+    //Just make this button send a message to a certain ip address and port
     [NaughtyAttributes.Button]
     private void SendMessage()
     {
@@ -20,9 +44,19 @@ class NetworkTest : MonoBehaviour
             return;
         }
 
-        //NetworkData data = new NetworkData(NetworkData.NetworkDataType, message);
-        //NetworkManager.Instance.SendData(data);
-
-        //Debug.Log("Message Sent" + data.Message);
+        IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse(m_remoteIpAddress), m_remotePort);
+        byte[] data = new byte[16];
+        int dataSize = 0;
+        clientSending.Send(data, dataSize, remoteEndPoint);
     }
+
+
+    //Make this button create a new socket with the given local address and port number
+    //there should be an updtae function that receives the data, this button should just update the address and port
+    [NaughtyAttributes.Button]
+    private void RefreshServerSocket()
+    {
+
+    }
+
 }

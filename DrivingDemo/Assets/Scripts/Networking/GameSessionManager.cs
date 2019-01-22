@@ -146,7 +146,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
 
         Debug.Log("broadcast from: " + dataIn.Message);
-        NetworkManager.Instance.SetServerAddress(dataIn.Message);
+        NetworkManager.Instance.SetRemoteServerAddress(dataIn.Message);
         LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
         NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, locomotionData);
         NetworkManager.Instance.SendDataToServer(tempData);

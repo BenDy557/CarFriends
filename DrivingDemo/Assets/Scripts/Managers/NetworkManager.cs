@@ -38,10 +38,8 @@ public class NetworkManager : Singleton<NetworkManager>
         {"HomePC-wifi", "192.168.0.7" },
     };
 
-    private int m_firstPort = 4916;
-    private int m_lastPort = 4920;
-    private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
 
+    //Server sockets
     private int m_serverPort = 4915;
     private IPEndPoint m_serverLocalEndPoint;
     private IPEndPoint m_serverRemoteEndPoint;
@@ -59,6 +57,11 @@ public class NetworkManager : Singleton<NetworkManager>
     //Socket that receives server broadcasts then stores that IP address
     private IPEndPoint m_receiveBroadcastEndPoint;
     private UdpClient m_receiveBroadcastSocket;
+
+    //ClientSockets
+    private int m_firstPort = 4916;
+    private int m_lastPort = 4920;
+    private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
 
     private IEnumerable<UdpClient> AllSockets
     {
@@ -130,12 +133,21 @@ public class NetworkManager : Singleton<NetworkManager>
                 break;
         }
 
-        Debug.Log(m_sockets.Count + " CLIENTS");
-        foreach (UdpClient client in m_sockets.Values)
+        Debug.Log("IsServerSet: " + IsServerSet);
+
+        int count = 0;
+        foreach (UdpClient socket in AllSockets)
+            count++;
+        Debug.Log(count + " SOCKETS");
+
+        count = 0;
+
+        foreach (UdpClient socket in AllSockets)
         {
-            Debug.Log("Client");
-            Debug.Log("LocalEP: " + client.Client.LocalEndPoint);
-            Debug.Log("RemoteEP: " + client.Client.RemoteEndPoint);
+            Debug.Log("Socket: " + count);
+            Debug.Log("LocalEP: " + socket.Client.LocalEndPoint);
+            Debug.Log("RemoteEP: " + socket.Client.RemoteEndPoint);
+            count++;
         }
         
         ReceiveMessage();
@@ -150,11 +162,13 @@ public class NetworkManager : Singleton<NetworkManager>
         m_networkRole = NetworkRole.SERVER;
 
         m_broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
-        m_broadcastSocket = new UdpClient();
+        m_broadcastSocket = new UdpClient(m_broadcastPort);
         m_broadcastSocket.EnableBroadcast = true;
         m_broadcastSocket.Client.Blocking = false;
         m_broadcastSocket.Client.MulticastLoopback = true;
         m_broadcastSocket.Connect(m_broadcastEndPoint);
+
+        SetLocalServer();
 
         Unibus.Dispatch(EventTags.OnServerStart);
     }
@@ -297,9 +311,28 @@ public class NetworkManager : Singleton<NetworkManager>
         SendData(client, networkData);
     }
 
-    public void SetServerAddress(string ipAddress)
+    public void SetLocalServer()
     {
+        /*m_broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
+        m_broadcastSocket = new UdpClient();
+        m_broadcastSocket.EnableBroadcast = true;
+        m_broadcastSocket.Client.Blocking = false;
+        m_broadcastSocket.Client.MulticastLoopback = true;
+        m_broadcastSocket.Connect(m_broadcastEndPoint);*/
 
+
+
+        m_serverLocalEndPoint = new IPEndPoint(IPAddress.Any, m_serverPort);
+        m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
+        m_serverSocket = new UdpClient(m_serverPort);
+        m_serverSocket.EnableBroadcast = true;
+        m_serverSocket.Client.Blocking = false;
+        m_serverSocket.Client.MulticastLoopback = true;
+        m_serverSocket.Connect(m_serverRemoteEndPoint);
+    }
+
+    public void SetRemoteServerAddress(string ipAddress)
+    {
         m_serverLocalEndPoint = new IPEndPoint(m_localIPAddrsIPV4, m_serverPort);
         m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
         m_serverSocket = new UdpClient(m_serverLocalEndPoint);// m_serverEndPoint);
