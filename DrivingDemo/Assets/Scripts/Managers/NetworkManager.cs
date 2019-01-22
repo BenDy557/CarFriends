@@ -24,6 +24,7 @@ public class NetworkManager : Singleton<NetworkManager>
     private bool NetworkRoleStarted { get { return m_networkRole != NetworkRole.NONE; } }
 
     private List<IPAddress> m_localIPAddrs = new List<IPAddress>();
+    private IPAddress m_localIPAddrsIPV4;
 
     [SerializeField, NaughtyAttributes.Dropdown("m_savedIPAddr")]
     private string m_targetIPAddr = "127.0.0.1";
@@ -42,7 +43,8 @@ public class NetworkManager : Singleton<NetworkManager>
     private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
 
     private int m_serverPort = 4915;
-    private IPEndPoint m_serverEndPoint;
+    private IPEndPoint m_serverLocalEndPoint;
+    private IPEndPoint m_serverRemoteEndPoint;
     private UdpClient m_serverSocket = null;
     public bool IsServerSet { get { return m_serverSocket != null; } }
 
@@ -88,6 +90,11 @@ public class NetworkManager : Singleton<NetworkManager>
             if (tempIP.AddressFamily == AddressFamily.InterNetwork)
             {
                 m_localIPAddrs.Add(tempIP);
+            }
+
+            if (tempIP.AddressFamily == AddressFamily.InterNetwork && tempIP.AddressFamily != AddressFamily.InterNetworkV6)
+            {
+                m_localIPAddrsIPV4 = tempIP;
             }
 
             Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
@@ -292,9 +299,11 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetServerAddress(string ipAddress)
     {
-        m_serverEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
-        m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
-        m_serverSocket.Connect(m_serverEndPoint);
+
+        m_serverLocalEndPoint = new IPEndPoint(m_localIPAddrsIPV4, m_serverPort);
+        m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
+        m_serverSocket = new UdpClient(m_serverLocalEndPoint);// m_serverEndPoint);
+        m_serverSocket.Connect(m_serverRemoteEndPoint);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;
