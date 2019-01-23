@@ -317,16 +317,6 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetLocalServer()
     {
-        /*m_broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
-        m_broadcastSocket = new UdpClient();
-        m_broadcastSocket.EnableBroadcast = true;
-        m_broadcastSocket.Client.Blocking = false;
-        m_broadcastSocket.Client.MulticastLoopback = true;
-        m_broadcastSocket.Connect(m_broadcastEndPoint);*/
-
-
-
-        //m_serverLocalEndPoint = new IPEndPoint(IPAddress.Any, m_serverPort);
         m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
         m_serverSocket = new UdpClient(m_serverPort);
         m_serverSocket.EnableBroadcast = true;
@@ -337,7 +327,6 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetRemoteServerAddress(string ipAddress)
     {
-        //m_serverLocalEndPoint = new IPEndPoint(m_localIPAddrsIPV4, m_serverPort);
         m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
         m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
         m_serverSocket.Connect(m_serverRemoteEndPoint);
