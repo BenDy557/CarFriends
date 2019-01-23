@@ -84,7 +84,12 @@ class NetworkTest : MonoBehaviour
 
     //Just make this button send a message to a certain ip address and port
     [NaughtyAttributes.Button]
-    private void SendMessage()
+    private void SendNetMessage()
+    {
+        SendNetMessage(m_messageToSend);
+    }
+
+    private void SendNetMessage<T>(T messageToSend)
     {
         if (!Application.isPlaying)
         {
@@ -95,15 +100,24 @@ class NetworkTest : MonoBehaviour
         IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse(m_remoteIpAddress), m_TestPort);
         m_socket.Connect(remoteEndPoint);
 
-        int dataSize = Marshal.SizeOf(typeof(NetworkTestData));
+        int dataSize = Marshal.SizeOf(typeof(T));
         byte[] data = new byte[dataSize];
 
         IntPtr pointer = Marshal.AllocHGlobal(dataSize);
-        Marshal.StructureToPtr(m_messageToSend, pointer, true);
+        Marshal.StructureToPtr(messageToSend, pointer, true);
         Marshal.Copy(pointer, data, 0, dataSize);
         Marshal.FreeHGlobal(pointer);
 
         m_socket.Send(data, dataSize);// remoteEndPoint);
+    }
+
+    [NaughtyAttributes.Button]
+    private void SendJoinRequest()
+    {
+        LocomotionData tempLocomotionData = new LocomotionData(Vector3.zero, Quaternion.identity);
+        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, tempLocomotionData);
+
+        SendNetMessage<NetworkData>(tempData);
     }
 
     //Make this button create a new socket with the given local address and port number

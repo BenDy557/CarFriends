@@ -319,22 +319,22 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetLocalServer()
     {
-        m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
+        //m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
         m_serverSocket = new UdpClient(m_serverPort);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;
-        m_serverSocket.Connect(m_serverRemoteEndPoint);
+        //m_serverSocket.Connect(m_serverRemoteEndPoint);
     }
 
     public void SetRemoteServerAddress(string ipAddress)
     {
-        m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
         m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
-        m_serverSocket.Connect(m_serverRemoteEndPoint);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;
+        m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
+        m_serverSocket.Connect(m_serverRemoteEndPoint);
     }
 
     public UdpClient AddClient(string ipAddress)
