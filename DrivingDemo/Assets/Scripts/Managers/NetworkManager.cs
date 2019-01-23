@@ -326,7 +326,7 @@ public class NetworkManager : Singleton<NetworkManager>
 
 
 
-        m_serverLocalEndPoint = new IPEndPoint(IPAddress.Any, m_serverPort);
+        //m_serverLocalEndPoint = new IPEndPoint(IPAddress.Any, m_serverPort);
         m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
         m_serverSocket = new UdpClient(m_serverPort);
         m_serverSocket.EnableBroadcast = true;
@@ -337,9 +337,9 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetRemoteServerAddress(string ipAddress)
     {
-        m_serverLocalEndPoint = new IPEndPoint(m_localIPAddrsIPV4, m_serverPort);
+        //m_serverLocalEndPoint = new IPEndPoint(m_localIPAddrsIPV4, m_serverPort);
         m_serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
-        m_serverSocket = new UdpClient(m_serverLocalEndPoint);// m_serverEndPoint);
+        m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
         m_serverSocket.Connect(m_serverRemoteEndPoint);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
@@ -350,9 +350,12 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         int portNumber = m_firstPort;
         //make socket attach to new port number
-        IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_firstPort);
+        IPEndPoint clientRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_firstPort);
 
-        UdpClient clientSocket = new UdpClient(clientEndPoint);
+        UdpClient clientSocket = new UdpClient(m_firstPort);
+        clientSocket.Client.Blocking = false;
+        clientSocket.Client.MulticastLoopback = true;
+        clientSocket.Connect(clientRemoteEndPoint);
 
         m_sockets.Add(portNumber, clientSocket);
 

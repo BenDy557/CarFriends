@@ -85,6 +85,7 @@ class NetworkTest : MonoBehaviour
         }
 
         IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse(m_remoteIpAddress), m_TestPort);
+        m_socket.Connect(remoteEndPoint);
 
         int dataSize = Marshal.SizeOf(typeof(NetworkTestData));
         byte[] data = new byte[dataSize];
@@ -94,7 +95,7 @@ class NetworkTest : MonoBehaviour
         Marshal.Copy(pointer, data, 0, dataSize);
         Marshal.FreeHGlobal(pointer);
 
-        m_socket.Send(data, dataSize, remoteEndPoint);
+        m_socket.Send(data, dataSize);// remoteEndPoint);
     }
 
     //Make this button create a new socket with the given local address and port number
