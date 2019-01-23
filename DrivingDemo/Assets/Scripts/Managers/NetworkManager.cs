@@ -52,11 +52,11 @@ public class NetworkManager : Singleton<NetworkManager>
     private int m_broadcastPort = 4910;
     //Socket that broadcasts out this computer's IP address for clients to join
     private IPEndPoint m_broadcastEndPoint;
-    private UdpClient m_broadcastSocket;
+    private UdpClient m_serverBroadcastSocket;
 
     //Socket that receives server broadcasts then stores that IP address
-    private IPEndPoint m_receiveBroadcastEndPoint;
-    private UdpClient m_receiveBroadcastSocket;
+    private IPEndPoint m_clientBroadcastLocalEndPoint;
+    private UdpClient m_clientBroadcastSocket;
 
     //ClientSockets
     private int m_firstPort = 4916;
@@ -72,11 +72,11 @@ public class NetworkManager : Singleton<NetworkManager>
                 yield return client;
             }
 
-            if (m_broadcastSocket != null)
-                yield return m_broadcastSocket;
+            if (m_serverBroadcastSocket != null)
+                yield return m_serverBroadcastSocket;
 
-            if (m_receiveBroadcastSocket != null)
-                yield return m_receiveBroadcastSocket;
+            if (m_clientBroadcastSocket != null)
+                yield return m_clientBroadcastSocket;
 
             if (m_serverSocket != null)
                 yield return m_serverSocket;
@@ -145,8 +145,11 @@ public class NetworkManager : Singleton<NetworkManager>
         foreach (UdpClient socket in AllSockets)
         {
             Debug.Log("Socket: " + count);
+            Debug.Log(count + " Available: " + socket.Available);
             Debug.Log("LocalEP: " + socket.Client.LocalEndPoint);
-            Debug.Log("RemoteEP: " + socket.Client.RemoteEndPoint);
+            if (socket.Client.EnableBroadcast != true)
+                Debug.Log("RemoteEP: " + socket.Client.RemoteEndPoint);
+
             count++;
         }
         
@@ -162,11 +165,11 @@ public class NetworkManager : Singleton<NetworkManager>
         m_networkRole = NetworkRole.SERVER;
 
         m_broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, m_broadcastPort);
-        m_broadcastSocket = new UdpClient(m_broadcastPort);
-        m_broadcastSocket.EnableBroadcast = true;
-        m_broadcastSocket.Client.Blocking = false;
-        m_broadcastSocket.Client.MulticastLoopback = true;
-        m_broadcastSocket.Connect(m_broadcastEndPoint);
+        m_serverBroadcastSocket = new UdpClient(m_broadcastPort);
+        m_serverBroadcastSocket.EnableBroadcast = true;
+        m_serverBroadcastSocket.Client.Blocking = false;
+        m_serverBroadcastSocket.Client.MulticastLoopback = true;
+        m_serverBroadcastSocket.Connect(m_broadcastEndPoint);
 
         SetLocalServer();
 
@@ -181,11 +184,12 @@ public class NetworkManager : Singleton<NetworkManager>
 
         m_networkRole = NetworkRole.CLIENT;
 
-        m_receiveBroadcastEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
-        m_receiveBroadcastSocket = new UdpClient(m_receiveBroadcastEndPoint);
-        m_receiveBroadcastSocket.EnableBroadcast = true;
-        m_receiveBroadcastSocket.Client.Blocking = false;
-        m_receiveBroadcastSocket.Client.MulticastLoopback = true;
+        m_clientBroadcastLocalEndPoint = new IPEndPoint(IPAddress.Any, m_broadcastPort);
+        m_clientBroadcastSocket = new UdpClient(m_clientBroadcastLocalEndPoint);
+        m_clientBroadcastSocket.EnableBroadcast = true;
+        m_clientBroadcastSocket.Client.Blocking = false;
+        m_clientBroadcastSocket.Client.MulticastLoopback = true;
+        //m_clientBroadcastSocket.Connect(IPAddress.Any,m_broadcastPort);
 
         Unibus.Dispatch(EventTags.OnClientStart);
     }
@@ -197,7 +201,7 @@ public class NetworkManager : Singleton<NetworkManager>
             m_broadcastMsgTimer = m_broadcastInterval;
             foreach (IPAddress ip in m_localIPAddrs)
             {
-                SendData(m_broadcastSocket, new NetworkData(NetworkData.NetworkDataType.SERVER_BROADCAST, ip.ToString()));
+                SendData(m_serverBroadcastSocket, new NetworkData(NetworkData.NetworkDataType.SERVER_BROADCAST, ip.ToString()));
             }
         }
         m_broadcastMsgTimer -= Time.unscaledDeltaTime;

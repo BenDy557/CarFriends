@@ -5,16 +5,28 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Text;
+using System.Runtime.InteropServices;
+using System;
 
 class NetworkTest : MonoBehaviour
 {
-    [SerializeField]
-    private string message = "butt";
+    [Serializable]
+    public struct NetworkTestData
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
+        public string Message;
+    }
+
+    [SerializeField, MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+    private NetworkTestData m_messageToSend;
+
+    [SerializeField, MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+    private NetworkTestData m_messageReceived;
 
     [SerializeField]
     private string m_remoteIpAddress;
     [SerializeField]
-    private int m_remotePort;
+    private int m_TestPort = 6001;
     
     UdpClient clientSending;
     UdpClient clientReceiving;
@@ -23,6 +35,7 @@ class NetworkTest : MonoBehaviour
     {
         clientSending = new UdpClient();
         clientReceiving = new UdpClient();
+        RefreshServerSocket();
     }
 
     private void OnDisable()
@@ -32,6 +45,33 @@ class NetworkTest : MonoBehaviour
 
         clientReceiving.Close();
         clientReceiving = null;
+    }
+
+    private void Update()
+    {
+        byte[] rawDataReceived;
+
+        while (true)
+        {
+            try
+            {
+                IPEndPoint senderEndPoint = null;
+                rawDataReceived = clientReceiving.Receive(ref senderEndPoint);
+            }
+            catch
+            {
+                //nothing//wsa wouldblock should return
+                //TODO//should catch other exceptions
+                return;
+            }
+
+            int size = Marshal.SizeOf(typeof(NetworkTestData));
+            IntPtr pointer = Marshal.AllocHGlobal(size);
+            Marshal.Copy(rawDataReceived, 0, pointer, size);
+            m_messageReceived =  (NetworkTestData)Marshal.PtrToStructure(pointer, typeof(NetworkTestData));
+
+            Debug.Log("TEST"+m_messageReceived.Message);
+        }
     }
 
     //Just make this button send a message to a certain ip address and port
@@ -44,19 +84,29 @@ class NetworkTest : MonoBehaviour
             return;
         }
 
-        IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse(m_remoteIpAddress), m_remotePort);
-        byte[] data = new byte[16];
-        int dataSize = 0;
+        IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse(m_remoteIpAddress), m_TestPort);
+
+        int dataSize = Marshal.SizeOf(typeof(NetworkTestData));
+        byte[] data = new byte[dataSize];
+
+        IntPtr pointer = Marshal.AllocHGlobal(dataSize);
+        Marshal.StructureToPtr(m_messageToSend, pointer, true);
+        Marshal.Copy(pointer, data, 0, dataSize);
+        Marshal.FreeHGlobal(pointer);
+
         clientSending.Send(data, dataSize, remoteEndPoint);
     }
-
 
     //Make this button create a new socket with the given local address and port number
     //there should be an updtae function that receives the data, this button should just update the address and port
     [NaughtyAttributes.Button]
     private void RefreshServerSocket()
     {
+        clientReceiving.Close();
 
+        clientReceiving = new UdpClient(m_TestPort);
+        clientReceiving.Client.Blocking = false;
+        clientReceiving.Client.MulticastLoopback = true;
     }
 
 }
