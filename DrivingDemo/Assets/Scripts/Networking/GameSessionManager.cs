@@ -4,6 +4,7 @@ using UnityEngine;
 using NaughtyAttributes;
 using UnibusEvent;
 using System.Net.Sockets;
+using NetworkBon;
 
 public class GameSessionManager : Singleton<GameSessionManager>
 {
@@ -45,14 +46,14 @@ public class GameSessionManager : Singleton<GameSessionManager>
     {
         switch (dataIn.MessageType)
         {
-            case NetworkData.NetworkMessageType.NONE:
+            case NetworkMessageType.NONE:
                 break;
-            case NetworkData.NetworkMessageType.JOIN_REQUEST:
+            case NetworkMessageType.JOIN_REQUEST:
                 OnJoinRequest(dataIn);
                 break;
-            case NetworkData.NetworkMessageType.JOIN_DENIED:
+            case NetworkMessageType.JOIN_DENIED:
                 break;
-            case NetworkData.NetworkMessageType.JOIN_ACCEPT:
+            case NetworkMessageType.JOIN_ACCEPT:
                 SyncSessionWithServer(dataIn);
                 break;
         }
@@ -108,7 +109,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         NetworkPlayer networkPlayer = new NetworkPlayer(playerName, socket, vehicle);
         m_players.Add(networkPlayer);
         //On join request accepted
-        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
+        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
 
         NetworkManager.Instance.SendDataToClient(networkPlayer.Socket, tempData);
         Debug.Log("JOIN_ACCEPT sent");
@@ -148,7 +149,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Debug.Log("broadcast from: " + dataIn.Message);
         NetworkManager.Instance.SetRemoteServerAddress(dataIn.Message);
         LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
-        NetworkData tempData = new NetworkData(NetworkData.NetworkDataType.NETWORK_MESSAGE, NetworkData.NetworkMessageType.JOIN_REQUEST, locomotionData);
+        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, locomotionData);
         NetworkManager.Instance.SendDataToServer(tempData);
         Debug.Log("JOIN_REQUEST sent");
     }

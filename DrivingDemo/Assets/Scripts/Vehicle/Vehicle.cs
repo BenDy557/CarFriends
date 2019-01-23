@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnibusEvent;
 using NaughtyAttributes;
+using NetworkBon;
 
 public class Vehicle : MonoBehaviour, INetObject
 {
@@ -97,7 +98,7 @@ public class Vehicle : MonoBehaviour, INetObject
         LocomotionData tempData = new LocomotionData(m_rigidBody.position, m_rigidBody.rotation, m_rigidBody.velocity, m_rigidBody.angularVelocity);
         //NetworkManager.Instance.SendData(new NetworkData(NetworkData.NetworkMessageType.LOCOMOTION, NetID, tempData));
 
-        return new NetworkData(NetworkData.NetworkDataType.LOCOMOTION, NetID, tempData);
+        return new NetworkData(NetworkDataType.LOCOMOTION, NetID, tempData);
     }
 
     private void ReceiveLocomotionInfo(NetworkData dataIn)

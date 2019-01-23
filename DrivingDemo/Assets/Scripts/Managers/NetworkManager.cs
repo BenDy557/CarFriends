@@ -9,6 +9,8 @@ using System.Text;
 using System.Runtime.InteropServices;
 using UnibusEvent;
 
+using NetworkBon;
+
 /// <summary>
 /// Network manager.
 /// The network manager is the first and last part of the application where network 
@@ -201,7 +203,7 @@ public class NetworkManager : Singleton<NetworkManager>
             m_broadcastMsgTimer = m_broadcastInterval;
             foreach (IPAddress ip in m_localIPAddrs)
             {
-                SendData(m_serverBroadcastSocket, new NetworkData(NetworkData.NetworkDataType.SERVER_BROADCAST, ip.ToString()));
+                SendData(m_serverBroadcastSocket, new NetworkData(NetworkDataType.SERVER_BROADCAST, ip.ToString()));
             }
         }
         m_broadcastMsgTimer -= Time.unscaledDeltaTime;
@@ -256,17 +258,17 @@ public class NetworkManager : Singleton<NetworkManager>
             case NetworkData.NetworkDataType.JOIN:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Join, networkData);
                 break;*/
-            case NetworkData.NetworkDataType.LOCOMOTION:
+            case NetworkDataType.LOCOMOTION:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Locomotion, networkData);
                 Debug.Log(networkData.LocomotionData.Position);
                 break;
-            case NetworkData.NetworkDataType.INPUT:
+            case NetworkDataType.INPUT:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
                 break;
-            case NetworkData.NetworkDataType.NETWORK_MESSAGE:
+            case NetworkDataType.NETWORK_MESSAGE:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Network_Message, networkData);
                 break;
-            case NetworkData.NetworkDataType.SERVER_BROADCAST:
+            case NetworkDataType.SERVER_BROADCAST:
                 Debug.Log("BroadcastReceived");
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, networkData);
                 break;

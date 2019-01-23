@@ -7,21 +7,29 @@ using System.IO;
 using System.Text;
 using System.Runtime.InteropServices;
 using System;
+using NetworkBon;
 
 class NetworkTest : MonoBehaviour
 {
     [Serializable]
     public struct NetworkTestData
     {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
         public string Message;
     }
 
-    [SerializeField, MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+    [SerializeField]
     private NetworkTestData m_messageToSend;
 
-    [SerializeField, MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+    [SerializeField]
     private NetworkTestData m_messageReceived;
+
+
+    [SerializeField]
+    private NetworkData m_networkDataToSend;
+    [SerializeField]
+    private NetworkData m_networkDataReceived;
+
 
     [SerializeField]
     private string m_remoteIpAddress;
