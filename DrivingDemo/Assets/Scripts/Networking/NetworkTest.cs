@@ -28,23 +28,22 @@ class NetworkTest : MonoBehaviour
     [SerializeField]
     private int m_TestPort = 6001;
     
-    UdpClient clientSending;
-    UdpClient clientReceiving;
+    UdpClient m_socket;
 
     private void OnEnable()
     {
-        clientSending = new UdpClient();
-        clientReceiving = new UdpClient();
-        RefreshServerSocket();
+        //m_socket = new UdpClient();
+        //clientReceiving = new UdpClient();
+        RefreshSocket();
     }
 
     private void OnDisable()
     {
-        clientSending.Close();
-        clientSending = null;
+        m_socket.Close();
+        m_socket = null;
 
-        clientReceiving.Close();
-        clientReceiving = null;
+        //clientReceiving.Close();
+        //clientReceiving = null;
     }
 
     private void Update()
@@ -56,7 +55,8 @@ class NetworkTest : MonoBehaviour
             try
             {
                 IPEndPoint senderEndPoint = null;
-                rawDataReceived = clientReceiving.Receive(ref senderEndPoint);
+                //rawDataReceived = clientReceiving.Receive(ref senderEndPoint);
+                rawDataReceived = m_socket.Receive(ref senderEndPoint);
             }
             catch
             {
@@ -94,19 +94,23 @@ class NetworkTest : MonoBehaviour
         Marshal.Copy(pointer, data, 0, dataSize);
         Marshal.FreeHGlobal(pointer);
 
-        clientSending.Send(data, dataSize, remoteEndPoint);
+        m_socket.Send(data, dataSize, remoteEndPoint);
     }
 
     //Make this button create a new socket with the given local address and port number
     //there should be an updtae function that receives the data, this button should just update the address and port
     [NaughtyAttributes.Button]
-    private void RefreshServerSocket()
+    private void RefreshSocket()
     {
-        clientReceiving.Close();
+        m_socket.Close();
+        m_socket = new UdpClient(m_TestPort);
+        m_socket.Client.Blocking = false;
+        m_socket.Client.MulticastLoopback = true;
+        //clientReceiving.Close();
 
-        clientReceiving = new UdpClient(m_TestPort);
-        clientReceiving.Client.Blocking = false;
-        clientReceiving.Client.MulticastLoopback = true;
+        //clientReceiving = new UdpClient(m_TestPort);
+        //clientReceiving.Client.Blocking = false;
+        //clientReceiving.Client.MulticastLoopback = true;
     }
 
 }
