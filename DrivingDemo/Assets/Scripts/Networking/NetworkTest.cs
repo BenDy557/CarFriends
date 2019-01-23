@@ -102,7 +102,8 @@ class NetworkTest : MonoBehaviour
     [NaughtyAttributes.Button]
     private void RefreshSocket()
     {
-        m_socket.Close();
+        if (m_socket != null)
+            m_socket.Close();
         m_socket = new UdpClient(m_TestPort);
         m_socket.Client.Blocking = false;
         m_socket.Client.MulticastLoopback = true;
