@@ -40,6 +40,8 @@ public class NetworkManager : Singleton<NetworkManager>
         {"HomePC-wifi", "192.168.0.7" },
     };
 
+    private List<byte[]> m_dataReceived = new List<byte[]>();
+
 
     //Server sockets
     private int m_serverPort = 4915;
@@ -129,11 +131,14 @@ public class NetworkManager : Singleton<NetworkManager>
             case NetworkRole.NONE:
                 break;
             case NetworkRole.SERVER:
-            BroadcastUpdate();
+                BroadcastUpdate();
                 break;
             case NetworkRole.CLIENT:
                 break;
         }
+
+        BeginAsyncReceiveMessage();
+        ReadFromReceiveBuffer();
 
         Debug.Log("IsServerSet: " + IsServerSet);
 
@@ -154,8 +159,8 @@ public class NetworkManager : Singleton<NetworkManager>
 
             count++;
         }
-        
-        ReceiveMessage();
+
+        Debug.Log("size of networkdata " + Marshal.SizeOf(typeof(NetworkData)));
     }
 
     [Button]
@@ -215,31 +220,83 @@ public class NetworkManager : Singleton<NetworkManager>
         Debug.Log("Message Sent");
     }
 
-    private void ReceiveMessage()
+    private void BeginAsyncReceiveMessage()
     {
         byte[] rawDataReceived;
 
         foreach (UdpClient socket in AllSockets)
         {
-            while (true)
+            UdpState udpState = new UdpState();
+            udpState.socket = socket;
+            udpState.endpoint = (IPEndPoint)socket.Client.LocalEndPoint;
+
+            socket.BeginReceive(AsyncReceiveCallback, udpState);
+
+
+            /*while (true)
             {
                 try
                 {
-                    IPEndPoint senderEndPoint = null;
-                    rawDataReceived = socket.Receive(ref senderEndPoint);
+                    //IPEndPoint senderEndPoint = null;
+
+                    //socket.BeginReceive(new AsyncCallback(AsyncReceiveCallback), udpState);
+                    //rawDataReceived = socket.Receive(ref senderEndPoint);
                 }
-                catch
+                catch (Exception exception)
                 {
+                    Debug.Log(exception.Message);
                     //nothing//wsa wouldblock should return
                     //TODO//should catch other exceptions
                     return;
                 }
 
-                NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
-                DispatchNetworkEvents(networkDataReceived);
-            }
+                //NetworkData networkDataReceived = ConvertToNetworkData(rawDataReceived);
+                //DispatchNetworkEvents(networkDataReceived);
+            }*/
         }
     }
+
+    private void ReadFromReceiveBuffer()
+    {
+        if (m_dataReceived.Count == 0)
+        {
+            Debug.Log("NoData");
+            return;
+        }
+        else
+            Debug.Log("DataHere!");
+
+        NetworkData networkDataReceived;
+        for (int i = m_dataReceived.Count-1; i>=0; i--)
+        {
+            networkDataReceived = ConvertToNetworkData(m_dataReceived[i]);
+            DispatchNetworkEvents(networkDataReceived);
+            m_dataReceived.RemoveAt(i);
+        }
+    }
+
+    public struct UdpState
+    {
+        public UdpClient socket;
+        public IPEndPoint endpoint;
+    }
+
+
+    private void AsyncReceiveCallback(IAsyncResult ar)
+    {
+        UdpClient socket = ((UdpState)(ar.AsyncState)).socket;
+        IPEndPoint endPoint = ((UdpState)(ar.AsyncState)).endpoint;
+
+        byte[] receiveBytes = socket.EndReceive(ar, ref endPoint);
+        m_dataReceived.Add(receiveBytes);
+
+        Debug.Log("Data Reveived");
+    }
+
+    /*private void ReceiveCallback(byte[] data)
+    {
+        m_dataReceived.Add(data);
+    }*/
 
     /// <summary>
     /// Filters the dispatch of network events based on type of data received

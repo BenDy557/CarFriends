@@ -151,6 +151,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
         NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, locomotionData);
         NetworkManager.Instance.SendDataToServer(tempData);
+
         Debug.Log("JOIN_REQUEST sent");
     }
 

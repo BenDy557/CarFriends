@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 
 namespace NetworkBon
 {
-    [System.Serializable]
     public struct NetworkData
     {
         public NetworkDataType DataType { get; private set; }
@@ -90,7 +89,6 @@ namespace NetworkBon
 
     }
 
-    [System.Serializable]
     public enum NetworkDataType
     {
         NETWORK_MESSAGE,//join, leave, kick, 
@@ -99,7 +97,6 @@ namespace NetworkBon
         INPUT,//input state
     }
 
-    [System.Serializable]
     public enum NetworkMessageType
     {
         NONE,
@@ -108,7 +105,6 @@ namespace NetworkBon
         JOIN_DENIED,
     }
 
-    [System.Serializable]
     public struct LocomotionData
     {
         public Vector3 Position { get; private set; }
