@@ -264,7 +264,7 @@ public class NetworkManager : Singleton<NetworkManager>
             return;
         }
         else
-            Debug.Log("DataHere!");
+            Debug.Log("DataHere!" + m_dataReceived.Count);
 
         NetworkData networkDataReceived;
         for (int i = m_dataReceived.Count-1; i>=0; i--)
@@ -273,6 +273,8 @@ public class NetworkManager : Singleton<NetworkManager>
             DispatchNetworkEvents(networkDataReceived);
             m_dataReceived.RemoveAt(i);
         }
+
+        Debug.Log("DataLeft: " + m_dataReceived.Count);
     }
 
     public struct UdpState
@@ -286,6 +288,8 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         UdpClient socket = ((UdpState)(ar.AsyncState)).socket;
         IPEndPoint endPoint = ((UdpState)(ar.AsyncState)).endpoint;
+
+        int dataSize = Marshal.SizeOf(typeof(NetworkData));
 
         byte[] receiveBytes = socket.EndReceive(ar, ref endPoint);
         m_dataReceived.Add(receiveBytes);
@@ -308,6 +312,9 @@ public class NetworkManager : Singleton<NetworkManager>
 
         switch (networkData.DataType)
         {
+            case NetworkDataType.NONE:
+                Debug.Log("CorruptNeworkMessage");
+                break;
             /*case NetworkData.NetworkDataType.MESSAGE:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Message, networkData);
                 Debug.Log(networkData.Message);

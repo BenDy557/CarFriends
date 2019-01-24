@@ -85,12 +85,11 @@ namespace NetworkBon
             MessageType = messageType;
             //Input = null;
         }
-
-
     }
 
     public enum NetworkDataType
     {
+        NONE,
         NETWORK_MESSAGE,//join, leave, kick, 
         SERVER_BROADCAST,//hey guys, I'm here
         LOCOMOTION,//velocity and position and rotation
