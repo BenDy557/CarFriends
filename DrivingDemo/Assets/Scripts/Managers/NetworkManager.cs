@@ -217,7 +217,6 @@ public class NetworkManager : Singleton<NetworkManager>
     private void SendRawData(UdpClient socket, byte[] dataToSend)
     {
         socket.Send(dataToSend, dataToSend.Length);
-        Debug.Log("Message Sent");
     }
 
     private void BeginAsyncReceiveMessage()
@@ -361,6 +360,7 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SendData(UdpClient socket, NetworkData data)
     {
+        Debug.Log("Message Sent: " + data.DataType + " Message type: " + data.MessageType);
         byte[] buffer = ConvertToRawData(data);
         SendRawData(socket, buffer);
     }
