@@ -115,7 +115,7 @@ class NetworkTest : MonoBehaviour
     private void SendJoinRequest()
     {
         LocomotionData tempLocomotionData = new LocomotionData(Vector3.zero, Quaternion.identity);
-        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, tempLocomotionData);
+        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, NetworkManager.Instance.LocalIPAddrsIPV4.ToString(), tempLocomotionData);
 
         SendNetMessage<NetworkData>(tempData);
     }
