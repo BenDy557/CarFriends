@@ -27,6 +27,7 @@ public class NetworkManager : Singleton<NetworkManager>
 
     private List<IPAddress> m_localIPAddrs = new List<IPAddress>();
     private IPAddress m_localIPAddrsIPV4;
+    public IPAddress LocalIPAddrsIPV4 { get { return m_localIPAddrsIPV4; } }
 
     [SerializeField, NaughtyAttributes.Dropdown("m_savedIPAddr")]
     private string m_targetIPAddr = "127.0.0.1";
@@ -419,6 +420,7 @@ public class NetworkManager : Singleton<NetworkManager>
         m_serverSocket.Client.MulticastLoopback = true;
         IPEndPoint serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
         m_serverSocket.Connect(serverRemoteEndPoint);
+        StartAsyncReceive(m_serverSocket);
     }
 
     private void StartAsyncReceive(UdpClient socket)
@@ -433,6 +435,7 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         int portNumber = m_firstPort;
         //make socket attach to new port number
+        Debug.Log("IP RECEIVED: " + ipAddress);
         IPEndPoint clientRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_firstPort);
 
         UdpClient clientSocket = new UdpClient(m_firstPort);

@@ -149,7 +149,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Debug.Log("broadcast from: " + dataIn.Message);
         NetworkManager.Instance.SetRemoteServerAddress(dataIn.Message);
         LocomotionData locomotionData = new LocomotionData(m_spawnPoint.position, m_spawnPoint.rotation);
-        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, locomotionData);
+        NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_REQUEST, NetworkManager.Instance.LocalIPAddrsIPV4.ToString(), locomotionData);
         NetworkManager.Instance.SendDataToServer(tempData);
 
         Debug.Log("JOIN_REQUEST sent");
@@ -180,12 +180,6 @@ public class GameSessionManager : Singleton<GameSessionManager>
             NetworkManager.instance.SendData(tempData);
         }
     }*/
-
-
-
-    
-
-    
 
     //TODO//should use dedicated spawner
     private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1)

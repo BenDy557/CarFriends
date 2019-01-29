@@ -76,11 +76,11 @@ namespace NetworkBon
             //Input = null;
         }
 
-        public NetworkData(NetworkDataType type, NetworkMessageType messageType, LocomotionData locomotionData)
+        public NetworkData(NetworkDataType type, NetworkMessageType messageType, string message, LocomotionData locomotionData = null)
         {
             DataType = type;
             NetworkObjectID = -1;
-            Message = null;
+            Message = message;
             LocomotionData = locomotionData;
             MessageType = messageType;
             //Input = null;
