@@ -117,7 +117,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
         string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
         UdpClient socket = NetworkManager.Instance.AddClient(dataIn.Message);
         Debug.LogWarning("BadCode");
-        Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation);//TODO//Should use dedicated spawner
+        m_localPlayer.NetObject.Init(false);
+        Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,false);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
         NetworkPlayer networkPlayer = new NetworkPlayer(playerName, socket, vehicle);

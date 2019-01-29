@@ -45,6 +45,7 @@ public class NetObject : MonoBehaviour
         return m_ID;
     }
 
+    //Should always be private
     private int GetNewID()
     {
         while (true)
