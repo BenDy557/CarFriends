@@ -90,7 +90,6 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void OnEnable()
     {
-
         //Assign local IPs
         IPHostEntry tempHostEntry = Dns.GetHostEntry(Dns.GetHostName());
         foreach (IPAddress tempIP in tempHostEntry.AddressList)
@@ -108,12 +107,6 @@ public class NetworkManager : Singleton<NetworkManager>
             Debug.Log(tempIP.AddressFamily.ToString() + " " + tempIP.ToString());
         }
 
-        /*System.Net.IPAddress ipAdd = System.Net.IPAddress.Parse(m_targetIPAddr);
-        m_remoteEndPoint = new IPEndPoint(ipAdd, port);
-        m_udpClient = new UdpClient(port);
-        m_udpClient.Client.Blocking = false;
-        m_udpClient.Client.MulticastLoopback = true;*/
-        //m_udpClient.Client.SetSocketOption(SocketOptionLevel.Udp, SocketOptionName.UseLoopback, true);
     }
 
     private void OnDisable()
@@ -138,30 +131,7 @@ public class NetworkManager : Singleton<NetworkManager>
                 break;
         }
 
-        //BeginAsyncReceiveMessage();
         ReadFromReceiveBuffer();
-
-        Debug.Log("IsServerSet: " + IsServerSet);
-
-        int count = 0;
-        foreach (UdpClient socket in AllSockets)
-            count++;
-        Debug.Log(count + " SOCKETS");
-
-        count = 0;
-
-        foreach (UdpClient socket in AllSockets)
-        {
-            Debug.Log("Socket: " + count);
-            Debug.Log(count + " Available: " + socket.Available);
-            Debug.Log("LocalEP: " + socket.Client.LocalEndPoint);
-            if (socket.Client.EnableBroadcast != true)
-                Debug.Log("RemoteEP: " + socket.Client.RemoteEndPoint);
-
-            count++;
-        }
-
-        Debug.Log("size of networkdata " + Marshal.SizeOf(typeof(NetworkData)));
     }
 
     [Button]

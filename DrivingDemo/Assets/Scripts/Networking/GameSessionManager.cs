@@ -59,6 +59,13 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
     }
 
+    [Button]
+    private void StartGame()
+    {
+        //SpawnSelf
+        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
+    }
+
     //SERVER//////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     #region ServerMethods
@@ -66,7 +73,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
     {
         //subsribe to join message
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
-        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
+
+        StartGame();
     }
 
     private void ServerUpdate()
@@ -123,6 +131,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
     {
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, ServerFound);
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
+
+        StartGame();
     }
 
     private void ClientUpdate()
@@ -166,8 +176,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         }
 
-        //SpawnYourself
-        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation, dataIn.NetworkObjectID);
+        //InitialiseOwnNetObject
+        m_localPlayer.NetObject.Init(false, dataIn.NetworkObjectID);
     }
     #endregion
 
@@ -182,7 +192,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
     }*/
 
     //TODO//should use dedicated spawner
-    private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1)
+    private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1, bool offlineMode = true)
     {
         Vehicle vehicle = Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
 
@@ -191,14 +201,17 @@ public class GameSessionManager : Singleton<GameSessionManager>
         if (isPlayer)
         {
             m_localPlayer = vehicle;
-            vehicle.NetObject.Init(false, netID);
+            if (!offlineMode)
+                vehicle.NetObject.Init(false, netID);
+
             vehicle.GetComponent<VehicleController>().isPlayer = true;
             UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
             localCamera.SetTarget(vehicle.transform);
         }
         else
         {
-            vehicle.NetObject.Init(true, netID);
+            if (!offlineMode)
+                vehicle.NetObject.Init(true, netID);
         }
 
         return vehicle;
