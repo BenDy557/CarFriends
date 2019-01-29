@@ -8,6 +8,8 @@ using NetworkBon;
 
 public class GameSessionManager : Singleton<GameSessionManager>
 {
+    private bool m_gameStarted = false;
+
     [SerializeField]
     private Transform m_spawnPoint;
 
@@ -62,8 +64,12 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [Button]
     private void StartGame()
     {
+        if (m_gameStarted)
+            return;
+
+        m_gameStarted = true;
         //SpawnSelf
-        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation);
+        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation,-1,true);
     }
 
     //SERVER//////////////////////////////////////////////////////////////////////////////////////////////
