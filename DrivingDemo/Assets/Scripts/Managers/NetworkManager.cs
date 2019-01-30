@@ -45,7 +45,8 @@ public class NetworkManager : Singleton<NetworkManager>
 
 
     //Server sockets
-    private int m_serverPort = 4915;
+    private int m_gameDataPort = 4915;
+    private UdpClient m_gameplaySocket;
     //private IPEndPoint m_serverLocalEndPoint;
     //private IPEndPoint m_serverRemoteEndPoint;
     private UdpClient m_serverSocket = null;
@@ -64,18 +65,21 @@ public class NetworkManager : Singleton<NetworkManager>
     private UdpClient m_clientBroadcastSocket;
 
     //ClientSockets
-    private int m_firstPort = 4916;
-    private int m_lastPort = 4920;
-    private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
+    //private int m_firstPort = 4916;
+    //private int m_lastPort = 4920;
+    //private Dictionary<int, UdpClient> m_sockets = new Dictionary<int, UdpClient>();
 
     private IEnumerable<UdpClient> AllSockets
     {
         get
         {
-            foreach (UdpClient client in m_sockets.Values)
+            /*foreach (UdpClient client in m_sockets.Values)
             {
                 yield return client;
-            }
+            }*/
+
+            if (m_gameplaySocket != null)
+                yield return m_gameplaySocket;
 
             if (m_serverBroadcastSocket != null)
                 yield return m_serverBroadcastSocket;
@@ -324,7 +328,7 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SendData(UdpClient socket, NetworkData data)
     {
-        Debug.Log("Message Sent: " + data.DataType + " Message type: " + data.MessageType);
+        Debug.Log("Message Sent: " + data.DataType + " Message type: " + data.MessageType + " SentTo: " + socket.Client.RemoteEndPoint.ToString());
         byte[] buffer = ConvertToRawData(data);
         SendRawData(socket, buffer);
     }
@@ -340,9 +344,10 @@ public class NetworkManager : Singleton<NetworkManager>
         SendData(m_serverSocket, data);
     }
 
-    public void SendDataToClient(UdpClient client, NetworkData networkData)
+    public void SendDataToClient(IPEndPoint destination, NetworkData networkData)
     {
-        SendData(client, networkData);
+        m_gameplaySocket.Connect(destination);
+        SendData(m_gameplaySocket, networkData);
     }
 
     //Server
@@ -363,7 +368,7 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         //m_serverRemoteEndPoint = new IPEndPoint(IPAddress.None, m_serverPort);
         //IPEndPoint serverLocalEndPoint = new IPEndPoint(IPAddress.Any, m_serverPort);
-        m_serverSocket = new UdpClient(m_serverPort);
+        m_serverSocket = new UdpClient(m_gameDataPort);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;
@@ -386,11 +391,11 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SetRemoteServerAddress(string ipAddress)
     {
-        m_serverSocket = new UdpClient(m_serverPort);// m_serverEndPoint);
+        m_serverSocket = new UdpClient(m_gameDataPort);// m_serverEndPoint);
         m_serverSocket.EnableBroadcast = true;
         m_serverSocket.Client.Blocking = false;
         m_serverSocket.Client.MulticastLoopback = true;
-        IPEndPoint serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
+        IPEndPoint serverRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_gameDataPort);
         m_serverSocket.Connect(serverRemoteEndPoint);
         StartAsyncReceive(m_serverSocket);
     }
@@ -403,12 +408,13 @@ public class NetworkManager : Singleton<NetworkManager>
         socket.BeginReceive(AsyncReceiveCallback, udpState);
     }
 
-    public UdpClient AddClient(string ipAddress)
+    /*public UdpClient AddClient(string ipAddress)
     {
-        int portNumber = m_firstPort;
+        //int portNumber = m_firstPort;
         //make socket attach to new port number
         Debug.Log("IP RECEIVED: " + ipAddress);
-        IPEndPoint clientRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_firstPort);
+        //IPEndPoint clientRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_firstPort);
+        IPEndPoint clientRemoteEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), m_serverPort);
 
         UdpClient clientSocket = new UdpClient(m_firstPort);
         clientSocket.Client.Blocking = false;
@@ -420,6 +426,11 @@ public class NetworkManager : Singleton<NetworkManager>
         m_sockets.Add(portNumber, clientSocket);
 
         return clientSocket;
+    }*/
+
+    public IPEndPoint GetClientEndPoint(string ipAddress)
+    {
+        return new IPEndPoint(IPAddress.Parse(ipAddress), m_gameDataPort);
     }
 
     public static string GetLocalIPAddress()

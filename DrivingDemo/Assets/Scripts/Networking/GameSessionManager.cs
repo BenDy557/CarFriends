@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
 using UnibusEvent;
+using System.Net;
 using System.Net.Sockets;
 using NetworkBon;
 
@@ -97,7 +98,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         for (int clientIndex = 0; clientIndex < m_players.Count; clientIndex++)
         {
             //if player is server or there is no socket set up
-            if (m_players[clientIndex].Socket == null || m_players[clientIndex].Vehicle == m_localPlayer)
+            if (m_players[clientIndex].ClientRemoteEndPoint == null || m_players[clientIndex].Vehicle == m_localPlayer)
                 continue;
 
             for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
@@ -107,7 +108,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
                     continue;
 
                 NetworkData vehicleData = m_players[vehicleIndexToSend].Vehicle.GetNetworkData();
-                NetworkManager.Instance.SendDataToClient(m_players[clientIndex].Socket, vehicleData);
+                NetworkManager.Instance.SendDataToClient(m_players[clientIndex].ClientRemoteEndPoint, vehicleData);
             }
         }
     }
@@ -120,23 +121,21 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         }
 
-        Debug.Log("JOIN_REQUEST received");
-
         Debug.LogWarning("BadCode");
 
         string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
-        UdpClient socket = NetworkManager.Instance.AddClient(dataIn.Message);
+        //UdpClient socket = NetworkManager.Instance.AddClient(dataIn.Message);
         Debug.LogWarning("BadCode");
         m_localPlayer.NetObject.Init(false);
         Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,false);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
-        NetworkPlayer networkPlayer = new NetworkPlayer(playerName, socket, vehicle);
+        NetworkPlayer networkPlayer = new NetworkPlayer(playerName, NetworkManager.Instance.GetClientEndPoint(dataIn.Message), vehicle);
         m_players.Add(networkPlayer);
         //On join request accepted
         NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
 
-        NetworkManager.Instance.SendDataToClient(networkPlayer.Socket, tempData);
+        NetworkManager.Instance.SendDataToClient(networkPlayer.ClientRemoteEndPoint, tempData);
         Debug.Log("JOIN_ACCEPT sent");
     }
     #endregion
@@ -242,17 +241,17 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
 public class NetworkPlayer
 {
-    public NetworkPlayer(string nameIn, UdpClient socketIn, Vehicle vehicleIn)
+    public NetworkPlayer(string nameIn, IPEndPoint iPEndPoint, Vehicle vehicleIn)
     {
         m_userName = nameIn;
-        m_socket = socketIn;
+        m_clientRemoteEndPoint = iPEndPoint;
         m_vehicle = vehicleIn;
     }
 
     private string m_userName;
     public string UserName { get { return m_userName; } }
-    private UdpClient m_socket;
-    public UdpClient Socket { get { return m_socket; } }
+    private IPEndPoint m_clientRemoteEndPoint;
+    public IPEndPoint ClientRemoteEndPoint { get { return m_clientRemoteEndPoint; } }
     private Vehicle m_vehicle;
     public Vehicle Vehicle { get { return m_vehicle; } }
 }
