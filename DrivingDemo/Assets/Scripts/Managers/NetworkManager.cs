@@ -288,20 +288,19 @@ public class NetworkManager : Singleton<NetworkManager>
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Join, networkData);
                 break;*/
             case NetworkDataType.LOCOMOTION:
-                Debug.Log(networkData.DataType + " received");
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Locomotion, networkData);
-                Debug.Log(networkData.LocomotionData.Position);
+                Debug.Log(networkData.DataType + " received " + networkData.LocomotionData.Position);
                 break;
             case NetworkDataType.INPUT:
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Input, networkData);
                 break;
             case NetworkDataType.NETWORK_MESSAGE:
-                Debug.Log(networkData.DataType + " " + networkData.MessageType +" received");
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Network_Message, networkData);
+                Debug.Log(networkData.DataType + " " + networkData.MessageType +" received");
                 break;
             case NetworkDataType.SERVER_BROADCAST:
-                Debug.Log("BroadcastReceived");
                 Unibus.Dispatch<NetworkData>(EventTags.NetDataReceived_Server_Brodacast, networkData);
+                Debug.Log("BroadcastReceived");
                 break;
         }
     }

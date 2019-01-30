@@ -83,7 +83,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         StartGame();
 
-        m_players.Add(new NetworkPlayer("Server", null, m_localPlayer));
+        m_players.Add(new NetworkPlayer(m_localPlayer.NetID, "Server", null, m_localPlayer));
     }
 
     private void ServerUpdate()
@@ -130,7 +130,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,false);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
-        NetworkPlayer networkPlayer = new NetworkPlayer(playerName, NetworkManager.Instance.GetClientEndPoint(dataIn.Message), vehicle);
+        NetworkPlayer networkPlayer = new NetworkPlayer(vehicle.NetID, playerName, NetworkManager.Instance.GetClientEndPoint(dataIn.Message), vehicle);
         m_players.Add(networkPlayer);
         //On join request accepted
         NetworkData tempData = new NetworkData(NetworkDataType.NETWORK_MESSAGE, NetworkMessageType.JOIN_ACCEPT, vehicle.NetID);
@@ -149,6 +149,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
 
         StartGame();
+
+        m_players.Add(new NetworkPlayer(m_localPlayer.NetID, "Client", null, m_localPlayer));
     }
 
     private void ClientUpdate()
@@ -158,6 +160,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
             Debug.LogError("JoinRequest when not client");
             return;
         }
+
+        NetworkData netData = m_localPlayer.GetNetworkData();
+        NetworkManager.Instance.SendDataToServer(netData);
     }
 
     private void ServerFound(NetworkData dataIn)
@@ -194,8 +199,32 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         //InitialiseOwnNetObject
         m_localPlayer.NetObject.Init(false, dataIn.NetworkObjectID);
+
+        Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Locomotion, OnLocomotionReceipt);
     }
     #endregion
+
+    private void OnLocomotionReceipt(NetworkData netData)
+    {
+        foreach (NetworkPlayer player in m_players)
+        {
+            if (player.ID != netData.NetworkObjectID)
+                continue;
+
+            player.Vehicle.ReceiveNetworkData(netData);
+            return;
+        }
+
+
+        //never accept unauthorised locomotion data when acting as server
+        if (NetworkManager.Instance.NetworkRole == NetworkRole.CLIENT)
+        {
+            Vehicle newPlayer = SpawnVehicle(false, netData.LocomotionData.Position, netData.LocomotionData.Rotation, netData.NetworkObjectID, false);
+            NetworkPlayer newNetworkPlayer = new NetworkPlayer(netData.NetworkObjectID, "NewPlayer", null, newPlayer);
+            newPlayer.ReceiveNetworkData(netData);
+            m_players.Add(newNetworkPlayer);
+        }
+    }
 
     /*[Button]
     private void StopSession()
@@ -241,13 +270,16 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
 public class NetworkPlayer
 {
-    public NetworkPlayer(string nameIn, IPEndPoint iPEndPoint, Vehicle vehicleIn)
+    public NetworkPlayer(int netID, string nameIn, IPEndPoint iPEndPoint, Vehicle vehicleIn)
     {
+        m_id = netID;
         m_userName = nameIn;
         m_clientRemoteEndPoint = iPEndPoint;
         m_vehicle = vehicleIn;
     }
 
+    private int m_id;
+    public int ID { get { return m_id; } }
     private string m_userName;
     public string UserName { get { return m_userName; } }
     private IPEndPoint m_clientRemoteEndPoint;
