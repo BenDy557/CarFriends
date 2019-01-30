@@ -46,7 +46,7 @@ public class NetworkManager : Singleton<NetworkManager>
 
     //Server sockets
     private int m_gameDataPort = 4915;
-    private UdpClient m_gameplaySocket;
+    //private UdpClient m_gameplaySocket;
     //private IPEndPoint m_serverLocalEndPoint;
     //private IPEndPoint m_serverRemoteEndPoint;
     private UdpClient m_serverSocket = null;
@@ -78,8 +78,8 @@ public class NetworkManager : Singleton<NetworkManager>
                 yield return client;
             }*/
 
-            if (m_gameplaySocket != null)
-                yield return m_gameplaySocket;
+            /*if (m_gameplaySocket != null)
+                yield return m_gameplaySocket;*/
 
             if (m_serverBroadcastSocket != null)
                 yield return m_serverBroadcastSocket;
@@ -346,8 +346,8 @@ public class NetworkManager : Singleton<NetworkManager>
 
     public void SendDataToClient(IPEndPoint destination, NetworkData networkData)
     {
-        m_gameplaySocket.Connect(destination);
-        SendData(m_gameplaySocket, networkData);
+        m_serverSocket.Connect(destination);
+        SendData(m_serverSocket, networkData);
     }
 
     //Server
