@@ -77,11 +77,11 @@ public class Wheel : MonoBehaviour
 	public void Update()
 	{
 		WheelFrictionCurve forwardFriction = m_collider.forwardFriction;
-		forwardFriction.stiffness = 0.8f;
+		//forwardFriction.stiffness = 0.8f;
 		m_collider.forwardFriction = forwardFriction;
 		
 		WheelFrictionCurve sidewaysFriction = m_collider.sidewaysFriction;
-		sidewaysFriction.stiffness = 0.8f;
+		//sidewaysFriction.stiffness = 0.8f;
 		m_collider.sidewaysFriction = sidewaysFriction;
 		
 		UpdateModel();
