@@ -81,6 +81,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Network_Message, NetworkMessageReceived);
 
         StartGame();
+
+        m_players.Add(new NetworkPlayer("Server", null, m_localPlayer));
     }
 
     private void ServerUpdate()
@@ -91,15 +93,23 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         }
 
-        //wait for connection messages
         //send player data to all clients
-        /*for (int playerIndexToSendTo = 0; playerIndexToSendTo < m_players.Count; playerIndexToSendTo++)
+        for (int clientIndex = 0; clientIndex < m_players.Count; clientIndex++)
         {
+            //if player is server or there is no socket set up
+            if (m_players[clientIndex].Socket == null || m_players[clientIndex].Vehicle == m_localPlayer)
+                continue;
+
             for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
             {
+                //dont send data back where it came from
+                if (clientIndex == vehicleIndexToSend)
+                    continue;
 
+                NetworkData vehicleData = m_players[vehicleIndexToSend].Vehicle.GetNetworkData();
+                NetworkManager.Instance.SendDataToClient(m_players[clientIndex].Socket, vehicleData);
             }
-        }*/
+        }
     }
 
     private void OnJoinRequest(NetworkData dataIn)
