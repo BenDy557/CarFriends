@@ -8,14 +8,8 @@ using NaughtyAttributes;
 public class VehicleSetUpData : ScriptableObject
 {
 	[SerializeField]
-    private Vector3 m_spawnPosition;
-
-	[SerializeField]
 	private string m_presetName;
 	public string PresetName { get { return m_presetName; } }
-
-	[SerializeField,ShowAssetPreview]
-    private GameObject m_chassisPrefab;
 
 	[SerializeField] private float m_mass;
 	public float Mass { get { return m_mass; } }
@@ -28,123 +22,16 @@ public class VehicleSetUpData : ScriptableObject
 	[SerializeField] private float m_maxEngineTorque;
 	public float MaxEngineTorque{ get { return m_maxEngineTorque; } }
 
-
-	[Button]
-	private void UpdateChassis()
-	{
-		if (m_chassisPrefab != null)
-		{
-			//TODO retrieve chassis data
-			//chassis data determines how many axles a vehicle has, where the wheels are placed and probably some other things
-			//m_axles.Clear();
-			//for (int i = 0; i < m_chassis.axleCount; i++)
-			//{
-			//m_axles.Add(new AxleData);
-			//}
-			Debug.Log("You've got chassis");
-		}
-	}
-
-	[SerializeField, NaughtyAttributes.BoxGroup("Axles")]
+    /*[SerializeField, NaughtyAttributes.BoxGroup("Axles")]
 	private List<AxleData> m_axles;
-	public IList<AxleData> Axles { get { return m_axles.AsReadOnly(); } }
+	public IList<AxleData> Axles { get { return m_axles.AsReadOnly(); } }*/
 
-
-
-	[NaughtyAttributes.Button]
-	private void GenerateVehicle()
-	{
-		//VehicleSpawner.SpawnVehicle (this);//TODO
-		GameObject vehicleObject = new GameObject("Vehicle "+m_presetName);
-
-		if(Camera.current != null)
-			vehicleObject.transform.position = (Camera.current.transform.position + (Camera.current.transform.forward * 10f));
-		else
-			vehicleObject.transform.position = Vector3.zero;
-
-        //VIEW/////////////////////////////////////////////////////////////////
-        GameObject viewObject = new GameObject("View");
-        viewObject.transform.SetParent (vehicleObject.transform, false);
-        View view = viewObject.AddComponent<View> ();
-
-        GameObject chassisObject = Instantiate(m_chassisPrefab, view.transform);
-        Chassis chassis = chassisObject.GetComponent<Chassis>();
-        if(chassis == null)
-            Debug.LogError("No chassis component found");
-
-
-        //RIGID_BODY/////////////////////////////////////////////////////////////////
-        Rigidbody rigidBody = vehicleObject.AddComponent<Rigidbody> ();//TODO make this data driven
-        rigidBody.mass = m_mass;
-        rigidBody.drag = 0f;
-        rigidBody.angularDrag = 0f;
-        rigidBody.useGravity = true;
-        rigidBody.isKinematic = false;
-        rigidBody.interpolation = RigidbodyInterpolation.Interpolate;
-        rigidBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        rigidBody.constraints = RigidbodyConstraints.None;
-        rigidBody.centerOfMass = chassis.CentreOfMass;
-
-        //VEHICLE/////////////////////////////////////////////////////////////////
-        //ENGINE/////////////////////////////////////////////////////////////////
-        Vehicle vehicle = vehicleObject.AddComponent<Vehicle>();
-        Drive engine = vehicleObject.AddComponent<Drive>();
-        
-        vehicle.Init (this);
-
-
-		//AXLES/////////////////////////////////////////////////////////////////
-		GameObject axlesObject = new GameObject("Axles");
-		axlesObject.transform.SetParent (vehicleObject.transform, false);
-
-		List<Axle> axles = new List<Axle>();
-
-		//foreach (AxleData axleData in m_axles)
-		for(int i = 0 ; i<m_axles.Count ; i++)
-		{
-			GameObject axleObject = new GameObject (m_axles[i].Name);
-			axleObject.transform.SetParent (axlesObject.transform, false);
-			Axle axle = axleObject.AddComponent<Axle> ();
-			
-
-			axles.Add(axle);
-
-			List<Wheel> wheels = new List<Wheel>();
-
-			//WHEELS/////////////////////////////////////////////////////////////////
-			for(int j = 0 ; j<m_axles[i].WheelCount;j++)
-			{
-				GameObject wheelObject = new GameObject (m_axles[i].Name + j);
-				wheelObject.transform.SetParent (axleObject.transform, false);
-				
-				if (i == 0)//front
-				{
-					wheelObject.transform.position = chassis.ForwardAxleOffset + (Vector3.right * (-(m_axles[i].AxleWidth*0.5f) + (j *m_axles[i].AxleWidth)));
-				}
-				else if (i == 1)//rear //TODO make more robust to work with chassis
-				{
-					wheelObject.transform.position = chassis.RearAxleOffset + (Vector3.right * (-(m_axles[i].AxleWidth*0.5f) + (j *m_axles[i].AxleWidth)));
-				}
-
-				Wheel wheel = wheelObject.AddComponent<Wheel> ();
-                wheel.Init(this,m_axles[i]);
-
-                WheelView wheelView = wheelObject.AddComponent<WheelView>();
-                wheelView.Init(this,m_axles[i]);
-
-				wheels.Add(wheel);
-			}
-
-            axle.Init(this,m_axles[i],wheels,vehicle);
-		}
-
-		engine.Init (this,vehicle.VehicleInput,axles);
-
-        //view.Init(this);
-		
-		vehicleObject.transform.position = m_spawnPosition;
-	}
-
+    [SerializeField, NaughtyAttributes.BoxGroup("Axles")]
+    private AxleData m_frontAxle;
+    public AxleData FrontAxle { get { return m_frontAxle; } }
+    [SerializeField, NaughtyAttributes.BoxGroup("Axles")]
+    private AxleData m_rearAxle;
+    public AxleData RearAxle { get { return m_rearAxle; } }
 }
 
 [System.Serializable]

@@ -11,7 +11,8 @@ public class Vehicle : MonoBehaviour, INetObject
     //private VehicleSetUpData vehicleSetupData;
     //WheelCollider m_frontWheelPrefab;
     //WheelCollider m_rearWheelPrefab;
-
+    [SerializeField]
+    private VehicleSetUpData m_setupData;
 
     [SerializeField]
     private NetObject m_netObject = null;
@@ -29,10 +30,15 @@ public class Vehicle : MonoBehaviour, INetObject
     private Rigidbody m_rigidBody;
     public Rigidbody Rigidbody { get { return m_rigidBody; } }
 
-    //Axle m_frontAxle;
+    [SerializeField]
+    private Chassis m_chassis;
+
+
     [SerializeField]
     private Drive m_engine;
     public Drive Engine { get { return m_engine; } }
+
+
 
     //Input
     VehicleInput m_vehicleInput;
@@ -61,19 +67,42 @@ public class Vehicle : MonoBehaviour, INetObject
     private void Awake()
     {
         m_vehicleInput = new VehicleInput();
-
         SubscribeToEvents();
     }
 
     private void Start()
     {
         m_engine.SetVehicleInput(m_vehicleInput);
+
+        if (m_setupData != null)
+            ApplySetupData(m_setupData);
     }
 
-    public void Init(VehicleSetUpData setupData)
+    [Button]
+    private void ApplySetupData()
     {
-        m_engine = GetComponent<Drive>();
-        m_rigidBody = GetComponent<Rigidbody>();
+        ApplySetupData(m_setupData);
+    }
+
+    private void ApplySetupData(VehicleSetUpData setupData)
+    {
+        m_rigidBody.mass = setupData.Mass;
+        //m_rigidBody.drag = 0f;
+        //m_rigidBody.angularDrag = 0f;
+        //m_rigidBody.useGravity = true;
+        //m_rigidBody.isKinematic = false;
+        //m_rigidBody.interpolation = RigidbodyInterpolation.Interpolate;
+        //m_rigidBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        //m_rigidBody.constraints = RigidbodyConstraints.None;
+        m_rigidBody.centerOfMass = m_chassis.CentreOfMass;
+
+        m_engine.ApplySetupData(setupData, m_vehicleInput);
+
+
+        //setupData.MaxBrakingTorque
+        //setupData.MaxEngineTorque
+        //setupData.HandBrakeTorque
+        //setupData.Axles
     }
 
     /*private void Update()

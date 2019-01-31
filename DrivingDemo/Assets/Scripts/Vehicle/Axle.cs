@@ -22,21 +22,18 @@ public class Axle : MonoBehaviour
 	[SerializeField] private List<Wheel> m_wheels;
 	public List<Wheel> Wheels {get{return m_wheels;}}
 
-    public void Init(VehicleSetUpData vehicleSetUpData, AxleData axleData, List<Wheel> wheels, Vehicle owner)
-	{
-        m_owner = owner;
+    public void ApplySetupData(VehicleSetUpData setupData, AxleData axleData)
+    {
 		m_steeringEnabled = axleData.SteeringEnabled;
 		m_brakingEnabled = axleData.BrakingEnabled;
 		m_eBrakingEnabled = axleData.EBrakingEnabled;
 		m_driveEnabled = axleData.DriveEnabled;
 
-		m_wheels = wheels;
-
 		//m_vehicleInput = vehicleInput;
-		/*foreach (WheelData wheelData in axleData.Wheels)
+		foreach (Wheel wheel in m_wheels)
 		{
-			wheelData.Init(vehicleSetUpData,wheelData);
-		}*/
+            wheel.ApplySetupData(setupData, axleData);
+		}
 	}
 
 	private void FixedUpdate()

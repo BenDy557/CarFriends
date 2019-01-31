@@ -6,7 +6,8 @@ using UnityEngine;
 [System.Serializable]
 public class Wheel : MonoBehaviour
 {
-	//private VehicleInput m_vehicleInput;
+    [SerializeField]
+    private Vehicle m_owner;
 
 	[SerializeField] private WheelCollider m_collider;
 	public WheelCollider Collider { get { return m_collider; } }
@@ -22,7 +23,7 @@ public class Wheel : MonoBehaviour
     private float m_accelerationInput = 0f;
     private float m_differentialForce = 0f;
 
-	public void Init(VehicleSetUpData vehicleSetUpData, AxleData axleData)
+    public void ApplySetupData(VehicleSetUpData vehicleSetUpData, AxleData axleData)
 	{
 		//m_vehicleInput = vehicleInput;
 
@@ -34,8 +35,6 @@ public class Wheel : MonoBehaviour
 		//WheelData
 
 		m_maxWheelAngle = axleData.MaxSteerinAngle;
-
-		m_collider = gameObject.AddComponent<WheelCollider>();
 		
 		//Protperties
 		m_collider.mass = axleData.WheelData.WheelMass;
@@ -69,7 +68,6 @@ public class Wheel : MonoBehaviour
 		m_collider.sidewaysFriction = sidewaysFriction;
 
 		//VIEW
-		m_model = Instantiate<GameObject>(axleData.WheelData.Model,Vector3.zero,Quaternion.identity,transform);
 		m_model.transform.localScale = Vector3.one * axleData.WheelData.WheelRadius;
 		UpdateModel();
 	}

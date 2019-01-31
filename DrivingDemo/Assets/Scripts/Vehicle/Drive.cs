@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Drive : MonoBehaviour
 {
-	/*[SerializeField]
+    /*[SerializeField]
 	private VehicleSetUpData vehicleSetupData;*/
 
     [SerializeField]
@@ -19,14 +19,6 @@ public class Drive : MonoBehaviour
 
     private List<Axle> m_axles = new List<Axle>();
     public List<Axle> Axles {get{return m_axles;}}
-    /*private List<Wheel> m_wheels;
-    public IList<Wheel> Wheels 
-    {
-        get
-        {
-            return m_wheels;
-        }    
-    }*/
 
     //Input
 	private VehicleInput m_vehicleInput = null;
@@ -40,28 +32,15 @@ public class Drive : MonoBehaviour
     {
         m_axles.Add(m_front);
         m_axles.Add(m_rear);
-		//Init(vehicleSetupData);
-
-        //m_wheels = new List<Wheel>();
-        //m_wheels.AddRange(m_frontWheels);
-        //m_wheels.AddRange(m_rearWheels);
-
-
-        //m_front = new Axle(m_frontWheels);
-        //m_rear = new Axle(m_rearWheels);
     }
 
-	public void Init(VehicleSetUpData setupData, VehicleInput vehicleInput, List<Axle> axles)
-	{
+    public void ApplySetupData(VehicleSetUpData setupData, VehicleInput vehicleInput)
+    {
 		m_vehicleInput = vehicleInput;
-		//m_maxWheelTorque = setupData.MaxEngineTorque;
-        m_rigidBody = GetComponent<Rigidbody>();
-        //m_rigidBody.centerOfMass = setupData.
-        
-        //TODO null check, should also be a list
-        m_front = axles[0];
-        m_rear = axles[1];
-	}
+
+        m_front.ApplySetupData(setupData, setupData.FrontAxle);
+        m_rear.ApplySetupData(setupData, setupData.RearAxle);
+    }
 
     private void Update()
     {
@@ -94,11 +73,6 @@ public class Drive : MonoBehaviour
             m_rigidBody.AddForce(Vector3.up * 7f, ForceMode.VelocityChange);
             m_rigidBody.AddRelativeTorque(Vector3.forward * 2f, ForceMode.VelocityChange);
         }
-
-
-		
-		//m_front.OnUpdate(m_vehicleInput);
-		//m_rear.OnUpdate (m_vehicleInput);
     }
 
 
