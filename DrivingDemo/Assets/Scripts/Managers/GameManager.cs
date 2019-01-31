@@ -19,6 +19,11 @@ public class GameManager : Singleton<GameManager>
             firstRace = new Race(participants, firstCourse, laps);
             firstRace.Start();
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
     }
 
 }

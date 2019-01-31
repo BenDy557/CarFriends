@@ -35,7 +35,7 @@ public abstract class TriggerZone : MonoBehaviour
     {
         Ray tempRay = new Ray(transform.position + (Vector3.up * 500f), Vector3.down);
         RaycastHit raycastHit;
-        Physics.Raycast(tempRay, out raycastHit, 1000f);
+        Physics.Raycast(tempRay, out raycastHit, 200f);
 
         if (raycastHit.collider == null)
         {

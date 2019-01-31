@@ -139,7 +139,7 @@ public class NetworkManager : Singleton<NetworkManager>
     }
 
     [Button]
-    private void StartServer()
+    public void StartServer()
     {
         if (NetworkRoleStarted)
             return;
@@ -153,7 +153,7 @@ public class NetworkManager : Singleton<NetworkManager>
     }
 
     [Button]
-    private void StartClient()
+    public void StartClient()
     {
         if (NetworkRoleStarted)
             return;

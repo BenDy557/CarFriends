@@ -63,7 +63,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
     }
 
     [Button]
-    private void StartGame()
+    public void StartGame()
     {
         if (m_gameStarted)
             return;
@@ -161,8 +161,11 @@ public class GameSessionManager : Singleton<GameSessionManager>
             return;
         }
 
-        NetworkData netData = m_localPlayer.GetNetworkData();
-        NetworkManager.Instance.SendDataToServer(netData);
+        if (NetworkManager.Instance.IsServerSet)
+        {
+            NetworkData netData = m_localPlayer.GetNetworkData();
+            NetworkManager.Instance.SendDataToServer(netData);
+        }
     }
 
     private void ServerFound(NetworkData dataIn)

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class EventStartZone : TriggerZone
 {
-
     [SerializeField]
     private Course m_courseToRace = null;
     [SerializeField]
