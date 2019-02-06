@@ -9,8 +9,11 @@ public class Wheel : MonoBehaviour
     [SerializeField]
     private Vehicle m_owner;
 
-	[SerializeField] private WheelCollider m_collider;
-	public WheelCollider Collider { get { return m_collider; } }
+    [SerializeField] private WheelCollider m_collider;
+    [SerializeField] private WheelCollider m_sphereCollider;
+
+
+    public WheelCollider Collider { get { return m_collider; } }
 
 	[SerializeField] private GameObject m_model;
 
@@ -129,5 +132,11 @@ public class Wheel : MonoBehaviour
 		m_model.transform.position = tWheelPos;
 		m_model.transform.rotation = tWheelRotation;//TODO should be replaced in the view class
 	}
+
+    private void OnCollisionStay(Collision collision)
+    {
+        Debug.Log("Anything?");
+        m_owner.Rigidbody.AddForceAtPosition(m_owner.transform.forward * 1000f, collision.contacts[0].point, ForceMode.Force);
+    }
 
 }
