@@ -133,6 +133,12 @@ public class Wheel : MonoBehaviour
 		m_model.transform.rotation = tWheelRotation;//TODO should be replaced in the view class
 	}
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("Anything?");
+        m_owner.Rigidbody.AddForceAtPosition(m_owner.transform.forward * 1000f, collision.contacts[0].point, ForceMode.Force);
+    }
+
     private void OnCollisionStay(Collision collision)
     {
         Debug.Log("Anything?");
