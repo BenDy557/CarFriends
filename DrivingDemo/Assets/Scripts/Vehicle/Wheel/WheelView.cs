@@ -30,7 +30,7 @@ public class WheelView : View
     private void Update()
     {
         WheelHit tempWheelHit;
-        if (m_wheel.Collider.GetGroundHit(out tempWheelHit))
+        if (m_wheel.GetGroundHit(out tempWheelHit))
         {
             m_fwdSlipEmitter.transform.position = tempWheelHit.point + (Vector3.up * 0.3f);//TODO//magic numbers
             m_fwdSlipEmitter.transform.forward = tempWheelHit.forwardDir * (tempWheelHit.forwardSlip < 0 ? 1 : -1);

@@ -17,12 +17,13 @@ public class WheelDisplay : MonoBehaviour
 
     void Start()
     {
-		m_nameText.text = m_wheel.Collider.name;
+		//m_nameText.text = m_wheel.Collider.name;
     }
 
     // Update is called once per frame
     void Update()
     {
+        /*
 		m_RPMText.text = "FL " + Mathf.RoundToInt(m_wheel.Collider.rpm);
 
         Vector3 slipOffset = new Vector3();
@@ -34,6 +35,6 @@ public class WheelDisplay : MonoBehaviour
             slipOffset.y = tempWheelHit.forwardSlip;
         }
 
-        m_slipIndicator.rectTransform.localPosition = slipOffset * 50f;
+        m_slipIndicator.rectTransform.localPosition = slipOffset * 50f;*/
     }
 }

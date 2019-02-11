@@ -50,17 +50,17 @@ public class Axle : MonoBehaviour
 		}*/
         float rpmDiffHigh = 200f;//rpm difference that causes to fully load one wheel over other
 
-        WheelCollider wheelL = m_wheels[0].Collider;
-        WheelCollider wheelR = m_wheels[1].Collider;
+        Wheel wheelL = m_wheels[0];
+        Wheel wheelR = m_wheels[1];
 
-        float rpmAvg = (wheelL.rpm + wheelR.rpm) * 0.5f;
+        float rpmAvg = (wheelL.Rpm + wheelR.Rpm) * 0.5f;
 
 
-        float wheelLRPMDiff = wheelL.rpm - rpmAvg;
+        float wheelLRPMDiff = wheelL.Rpm - rpmAvg;
         float torqueL = (wheelLRPMDiff / rpmDiffHigh) * -m_wheels[0].MaxEngineTorque;
         m_wheels[0].SetDifferentialForce(torqueL);
 
-        float wheelRRPMDiff = wheelR.rpm - rpmAvg;
+        float wheelRRPMDiff = wheelR.Rpm - rpmAvg;
         float torqueR = (wheelRRPMDiff / rpmDiffHigh) * -m_wheels[1].MaxEngineTorque;
         m_wheels[1].SetDifferentialForce(torqueR);
     }
@@ -71,21 +71,21 @@ public class Axle : MonoBehaviour
         float travelL = 1.0f;
         float travelR = 1.0f;
 
-        WheelCollider wheelL = m_wheels[0].Collider;
-        WheelCollider wheelR = m_wheels[1].Collider;
+        Wheel wheelL = m_wheels[0];
+        Wheel wheelR = m_wheels[1];
 
         bool groundedL = wheelL.GetGroundHit(out hit);
 
         if (groundedL)
         {
-            travelL = (-wheelL.transform.InverseTransformPoint(hit.point).y - wheelL.radius) / wheelL.suspensionDistance;
+            travelL = (-wheelL.transform.InverseTransformPoint(hit.point).y - wheelL.Radius) / wheelL.SuspensionDistance;
         }
 
         bool groundedR = wheelR.GetGroundHit(out hit);
 
         if (groundedR)
         {
-            travelR = (-wheelR.transform.InverseTransformPoint(hit.point).y - wheelR.radius) / wheelR.suspensionDistance;
+            travelR = (-wheelR.transform.InverseTransformPoint(hit.point).y - wheelR.Radius) / wheelR.SuspensionDistance;
         }
 
         float antiRollForce = (travelL - travelR) * m_antiSwayBarForce;
