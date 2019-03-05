@@ -21,6 +21,10 @@ public class Wheel : MonoBehaviour
 
     public float Rpm { get { return 0f; } }
 
+    [SerializeField, Range(0,1)]
+    private float m_wheelBounciness = 0.5f;
+
+
     [SerializeField]
     private float m_wheelAcceleration = 1f;
     [SerializeField]
@@ -121,6 +125,7 @@ public class Wheel : MonoBehaviour
         Ray floorCast = new Ray(transform.position, -transform.up);
         RaycastHit raycastHit;
 
+        Debug.Log("relativeVelocity" + m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude);z
         
         if (Physics.Raycast(floorCast, out raycastHit, m_radius, m_wheelLayerMask, QueryTriggerInteraction.Collide))
         {
@@ -131,7 +136,8 @@ public class Wheel : MonoBehaviour
 
             float normalisedHitDistance = (raycastHit.distance / m_radius);
 
-            m_owner.Rigidbody.AddForceAtPosition(transform.up * (1-normalisedHitDistance) * m_springAcceleration, transform.position, ForceMode.Acceleration);
+            //m_owner.Rigidbody.AddForceAtPosition(transform.up * (1-normalisedHitDistance) * m_springAcceleration, transform.position, ForceMode.Acceleration);
+            m_owner.Rigidbody.AddForceAtPosition(raycastHit.normal.normalized * m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude , transform.position, ForceMode.Acceleration);
         }
         else
         {
@@ -146,7 +152,9 @@ public class Wheel : MonoBehaviour
         m_wheelHit.forwardSlip = 0f;
         m_wheelHit.force = 0f;
 
-        m_owner.Rigidbody.AddForceAtPosition(transform.forward * m_wheelAcceleration, transform.position, ForceMode.Acceleration);
+
+        float wheelForce = m_maxEngineTorque * m_accelerationInput;
+        m_owner.Rigidbody.AddForceAtPosition(transform.forward * wheelForce, transform.position, ForceMode.Force);
     }
 
     public void Steer(float steeringInput)
