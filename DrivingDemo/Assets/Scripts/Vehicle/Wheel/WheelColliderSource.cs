@@ -76,7 +76,9 @@ public class WheelColliderSource : MonoBehaviour
         set
         {
             m_radius = value;
-            m_collider.center = new Vector3(0, m_radius, 0);
+
+            if(m_collider !=null)
+                m_collider.center = new Vector3(0, m_radius, 0);
         }
         get
         {
@@ -306,6 +308,8 @@ public class WheelColliderSource : MonoBehaviour
             {
                 GizmoColor = Color.red;
             }
+
+            Utils.DrawCross(m_raycastHit.point, Color.magenta);
         }
         else //The wheel is in the air
         {
@@ -336,11 +340,15 @@ public class WheelColliderSource : MonoBehaviour
             m_wheelAngularVelocity -= Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip) / (Mathf.PI * 2.0f * m_radius) / m_mass * Time.deltaTime;
         }
 
+
+        //Debug.Log("angularVelocity1: " + m_wheelAngularVelocity);
         //Apply motor torque
         m_wheelAngularVelocity += m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
-
+        //Debug.Log("angularVelocity2: " + m_wheelAngularVelocity);
         //Apply brake torque
         m_wheelAngularVelocity -= Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
+
+        //Debug.Log("angularVelocity3: " + m_wheelAngularVelocity);
     }
 
     private void CalculateSlips()
@@ -362,20 +370,34 @@ public class WheelColliderSource : MonoBehaviour
         m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
         m_sidewaysSlip = -Mathf.Sign(Vector3.Dot(sideways, sidewaysVelocity)) * sidewaysVelocity.magnitude;
 
+        //Debug.Log("ForwardSlips: " + m_forwardSlip);
+        //Debug.Log("ForwardFriction: " + m_forwardFriction.Evaluate(m_forwardSlip));
+
+        //Debug.Log("SidewaySlips: " + m_sidewaysSlip);
+        //Debug.Log("SidewaysFriction: " + m_sidewaysFriction.Evaluate(m_sidewaysSlip));
+
     }
 
     private void CalculateForcesFromSlips()
     {
         //Forward slip force
-        m_totalForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip);
+        Vector3 forwardSlipForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip);
 
         //Lateral slip force
-        m_totalForce -= m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * m_forwardFriction.Evaluate(m_sidewaysSlip);
+        Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * m_forwardFriction.Evaluate(m_sidewaysSlip);
 
         //Spring force
-        m_totalForce += m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
 
         //Spring damping force
-        m_totalForce += m_wheelParent.up * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
+        Vector3 springDampingForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
+
+        m_totalForce = forwardSlipForce + lateralSlipForce + springForce + springDampingForce;
+
+        Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.05f), Color.red);
+        Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.05f), Color.green);
+        Debug.DrawLine(transform.position, transform.position + (springForce * 0.005f), Color.blue);
+        Debug.DrawLine(transform.position, transform.position + (springDampingForce * 0.005f), Color.magenta);
+        Debug.DrawLine(transform.position, transform.position + (m_totalForce * 0.005f), Color.white);
     }
 }

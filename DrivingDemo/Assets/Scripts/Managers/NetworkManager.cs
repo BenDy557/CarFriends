@@ -223,7 +223,7 @@ public class NetworkManager : Singleton<NetworkManager>
     {
         if (m_dataReceived.Count == 0)
         {
-            Debug.Log("NoData");
+            //Debug.Log("NoData");
             return;
         }
         else

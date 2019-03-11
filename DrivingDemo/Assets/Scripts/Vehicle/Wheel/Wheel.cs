@@ -119,9 +119,8 @@ public class Wheel : MonoBehaviour
 
     public void FixedUpdate()
     {
-        m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
-
-        Ray floorCast = new Ray(transform.position, -transform.up);
+        //m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
+        /*Ray floorCast = new Ray(transform.position, -transform.up);
         RaycastHit raycastHit;
 
         Debug.Log("relativeVelocity" + m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude);
@@ -136,7 +135,7 @@ public class Wheel : MonoBehaviour
             float normalisedHitDistance = (raycastHit.distance / m_radius);
 
             //m_owner.Rigidbody.AddForceAtPosition(transform.up * (1-normalisedHitDistance) * m_springAcceleration, transform.position, ForceMode.Acceleration);
-            m_owner.Rigidbody.AddForceAtPosition(raycastHit.normal.normalized * m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude , transform.position, ForceMode.Acceleration);
+            //m_owner.Rigidbody.AddForceAtPosition(raycastHit.normal.normalized * m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude , transform.position, ForceMode.Acceleration);
         }
         else
         {
@@ -153,7 +152,7 @@ public class Wheel : MonoBehaviour
 
 
         float wheelForce = m_maxEngineTorque * m_accelerationInput;
-        m_owner.Rigidbody.AddForceAtPosition(transform.forward * wheelForce, transform.position, ForceMode.Force);
+        m_owner.Rigidbody.AddForceAtPosition(transform.forward * wheelForce, transform.position, ForceMode.Force);*/
     }
 
     public void Steer(float steeringInput)
@@ -181,6 +180,7 @@ public class Wheel : MonoBehaviour
 	{
         //Acceleration
         m_accelerationInput = accelerationInput;
+        m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
     }
 
     public void SetDifferentialForce(float diffForce)
