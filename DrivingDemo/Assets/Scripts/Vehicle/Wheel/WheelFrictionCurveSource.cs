@@ -16,6 +16,7 @@
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
 public class WheelFrictionCurveSource
 {
     private struct WheelFrictionCurvePoint
@@ -23,10 +24,15 @@ public class WheelFrictionCurveSource
         public float TValue;
         public Vector2 SlipForcePoint;
     }
+    [SerializeField]
     private float m_extremumSlip; //Extremum point slip (default 3).
+    [SerializeField]
     private float m_extremumValue; //Force at the extremum slip (default 6000).
+    [SerializeField]
     private float m_asymptoteSlip; //Asymptote point slip (default 4).
+    [SerializeField]
     private float m_asymptoteValue; //Force at the asymptote slip (default 5500).
+    [SerializeField]
     private float m_stiffness; //Multiplier for the extremumValue and asymptoteValue values (default 1).
 
     private int m_arraySize;

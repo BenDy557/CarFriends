@@ -16,10 +16,14 @@
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
 public struct JointSpringSource
 {
+    [SerializeField]
     private float m_spring; //The spring forces used to reach the target position
+    [SerializeField]
     private float m_damper; //The damper force uses to dampen the spring
+    [SerializeField]
     private float m_targetPosition; //The target position the joint attempts to reach.
 
 

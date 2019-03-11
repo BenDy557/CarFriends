@@ -18,12 +18,16 @@ using System.Collections;
 
 public class WheelColliderSource : MonoBehaviour
 {
-    private Transform m_dummyWheel;
+    [SerializeField]
+    private Transform m_wheelParent;
     [SerializeField]
     private Rigidbody m_rigidbody;
+
     private SphereCollider m_collider;
 
+    [SerializeField]
     private WheelFrictionCurveSource m_forwardFriction; //Properties of tire friction in the direction the wheel is pointing in.
+    [SerializeField]
     private WheelFrictionCurveSource m_sidewaysFriction; //Properties of tire friction in the sideways direction.
     private float m_forwardSlip;
     private float m_sidewaysSlip;
@@ -37,17 +41,21 @@ public class WheelColliderSource : MonoBehaviour
     private float m_wheelSteerAngle; //Steering angle in degrees, always around the local y-axis.
     private float m_wheelAngularVelocity; //Current wheel axle rotation speed, in rotations per minute (Read Only).
     private float m_wheelRotationAngle;
-    private float m_wheelRadius; //The radius of the wheel, measured in local space.
-    private float m_wheelMass; //The mass of the wheel. Must be larger than zero.
+    [SerializeField]
+    private float m_radius; //The radius of the wheel, measured in local space.
+    [SerializeField]
+    private float m_mass; //The mass of the wheel. Must be larger than zero.
 
     private RaycastHit m_raycastHit;
+    [SerializeField]
     private float m_suspensionDistance; //Maximum extension distance of wheel suspension, measured in local space.
     private float m_suspensionCompression;
     private float m_suspensionCompressionPrev;
+    [SerializeField]
     private JointSpringSource m_suspensionSpring; //The parameters of wheel's suspension. The suspension attempts to reach a target position
 
     //Debugging color data
-    private Color GizmoColor;
+    private Color GizmoColor = Color.cyan;
 
     //Standard accessor and mutator properties
     public Vector3 Center
@@ -55,8 +63,8 @@ public class WheelColliderSource : MonoBehaviour
         set
         {
             m_center = value;
-            m_dummyWheel.localPosition = transform.localPosition + m_center;
-            m_prevPosition = m_dummyWheel.localPosition;
+            m_wheelParent.localPosition = transform.localPosition + m_center;
+            m_prevPosition = m_wheelParent.localPosition;
         }
         get
         {
@@ -67,12 +75,12 @@ public class WheelColliderSource : MonoBehaviour
     {
         set
         {
-            m_wheelRadius = value;
-            m_collider.center = new Vector3(0, m_wheelRadius, 0);
+            m_radius = value;
+            m_collider.center = new Vector3(0, m_radius, 0);
         }
         get
         {
-            return m_wheelRadius;
+            return m_radius;
         }
     }
     public float SuspensionDistance
@@ -101,11 +109,11 @@ public class WheelColliderSource : MonoBehaviour
     {
         set
         {
-            m_wheelMass = Mathf.Max(value, 0.0001f);
+            m_mass = Mathf.Max(value, 0.0001f);
         }
         get
         {
-            return m_wheelMass;
+            return m_mass;
         }
     }
     public WheelFrictionCurveSource ForwardFriction
@@ -178,19 +186,14 @@ public class WheelColliderSource : MonoBehaviour
         }
     }
 
-    [NaughtyAttributes.Button]
-    private void GenerateDummyWheel()
-    {
-        m_dummyWheel = new GameObject("DummyWheel").transform;
-        m_dummyWheel.transform.parent = this.transform.parent;
-    }
-
     // Use this for initialization
     public void Awake()
     {
+        m_wheelParent = new GameObject("ParentWheel").transform;
+        m_wheelParent.transform.parent = this.transform.parent;
         Center = Vector3.zero;
 
-        m_wheelRadius = 0.5f;
+        m_radius = 0.5f;
         m_suspensionDistance = 0.5f;
         m_suspensionCompression = 0.0f;
         Mass = 1.0f;
@@ -213,7 +216,7 @@ public class WheelColliderSource : MonoBehaviour
         //See wiki for more details.
         //http://www.unifycommunity.com/wiki/index.php?title=WheelColliderSource
         m_collider = gameObject.AddComponent<SphereCollider>();
-        m_collider.center = new Vector3(0, m_wheelRadius, 0);
+        m_collider.center = new Vector3(0, m_radius, 0);
         m_collider.radius = 0.0f;
     }
 
@@ -238,18 +241,22 @@ public class WheelColliderSource : MonoBehaviour
     {
         Gizmos.color = GizmoColor;
 
+        Transform parentTransform;
+
+        if (m_wheelParent == null)
+            parentTransform = transform;
+        else
+            parentTransform = m_wheelParent;
+
         //Draw the suspension
-        Gizmos.DrawLine(
-            transform.position - m_dummyWheel.up * m_wheelRadius,
-            transform.position + (m_dummyWheel.up * (m_suspensionDistance - m_suspensionCompression))
-        );
+        Gizmos.DrawLine(transform.position - parentTransform.up * m_radius, transform.position + (parentTransform.up * (m_suspensionDistance - m_suspensionCompression)));
 
         //Draw the wheel
         Vector3 point1;
-        Vector3 point0 = transform.TransformPoint(m_wheelRadius * new Vector3(0, Mathf.Sin(0), Mathf.Cos(0)));
+        Vector3 point0 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(0), Mathf.Cos(0)));
         for (int i = 1; i <= 20; ++i)
         {
-            point1 = transform.TransformPoint(m_wheelRadius * new Vector3(0, Mathf.Sin(i / 20.0f * Mathf.PI * 2.0f), Mathf.Cos(i / 20.0f * Mathf.PI * 2.0f)));
+            point1 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(i / 20.0f * Mathf.PI * 2.0f), Mathf.Cos(i / 20.0f * Mathf.PI * 2.0f)));
             Gizmos.DrawLine(point0, point1);
             point0 = point1;
 
@@ -265,8 +272,8 @@ public class WheelColliderSource : MonoBehaviour
             wheelHit.Collider = m_raycastHit.collider;
             wheelHit.Point = m_raycastHit.point;
             wheelHit.Normal = m_raycastHit.normal;
-            wheelHit.ForwardDir = m_dummyWheel.forward;
-            wheelHit.SidewaysDir = m_dummyWheel.right;
+            wheelHit.ForwardDir = m_wheelParent.forward;
+            wheelHit.SidewaysDir = m_wheelParent.right;
             wheelHit.Force = m_totalForce;
             wheelHit.ForwardSlip = m_forwardSlip;
             wheelHit.SidewaysSlip = m_sidewaysSlip;
@@ -278,13 +285,13 @@ public class WheelColliderSource : MonoBehaviour
     private void UpdateSuspension()
     {
         //Raycast down along the suspension to find out how far the ground is to the wheel
-        bool result = Physics.Raycast(new Ray(m_dummyWheel.position, -m_dummyWheel.up), out m_raycastHit, m_wheelRadius + m_suspensionDistance);
+        bool result = Physics.Raycast(new Ray(m_wheelParent.position, -m_wheelParent.up), out m_raycastHit, m_radius + m_suspensionDistance);
 
         if (result) //The wheel is in contact with the ground
         {
             if (!m_isGrounded) //If not previously grounded, set the prevPosition value to the wheel's current position.
             {
-                m_prevPosition = m_dummyWheel.position;
+                m_prevPosition = m_wheelParent.position;
             }
             GizmoColor = Color.green;
             m_isGrounded = true;
@@ -293,7 +300,7 @@ public class WheelColliderSource : MonoBehaviour
             m_suspensionCompressionPrev = m_suspensionCompression;
 
             //Update the suspension compression
-            m_suspensionCompression = m_suspensionDistance + m_wheelRadius - (m_raycastHit.point - m_dummyWheel.position).magnitude;
+            m_suspensionCompression = m_suspensionDistance + m_radius - (m_raycastHit.point - m_wheelParent.position).magnitude;
 
             if (m_suspensionCompression > m_suspensionDistance)
             {
@@ -311,7 +318,7 @@ public class WheelColliderSource : MonoBehaviour
     private void UpdateWheel()
     {
         //Set steering angle of the wheel dummy
-        m_dummyWheel.localEulerAngles = new Vector3(0, m_wheelSteerAngle, 0);
+        m_wheelParent.localEulerAngles = new Vector3(0, m_wheelSteerAngle, 0);
 
         //Calculate the wheel's rotation given it's angular velocity
         m_wheelRotationAngle += m_wheelAngularVelocity * Time.deltaTime;
@@ -320,31 +327,31 @@ public class WheelColliderSource : MonoBehaviour
         this.transform.localEulerAngles = new Vector3(m_wheelRotationAngle, m_wheelSteerAngle, 0);
 
         //Set the wheel's position given the current suspension compression
-        transform.localPosition = m_dummyWheel.localPosition - Vector3.up * (m_suspensionDistance - m_suspensionCompression);
+        transform.localPosition = m_wheelParent.localPosition - Vector3.up * (m_suspensionDistance - m_suspensionCompression);
 
         //Apply rolling force to tires if they are grounded and don't have motor torque applied to them.
         if (m_isGrounded && m_wheelMotorTorque == 0)
         {
             //Apply angular force to wheel from slip
-            m_wheelAngularVelocity -= Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip) / (Mathf.PI * 2.0f * m_wheelRadius) / m_wheelMass * Time.deltaTime;
+            m_wheelAngularVelocity -= Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip) / (Mathf.PI * 2.0f * m_radius) / m_mass * Time.deltaTime;
         }
 
         //Apply motor torque
-        m_wheelAngularVelocity += m_wheelMotorTorque / m_wheelRadius / m_wheelMass * Time.deltaTime;
+        m_wheelAngularVelocity += m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
 
         //Apply brake torque
-        m_wheelAngularVelocity -= Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_wheelRadius / m_wheelMass * Time.deltaTime);
+        m_wheelAngularVelocity -= Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
     }
 
     private void CalculateSlips()
     {
         //Calculate the wheel's linear velocity
-        Vector3 velocity = (m_dummyWheel.position - m_prevPosition) / Time.deltaTime;
-        m_prevPosition = m_dummyWheel.position;
+        Vector3 velocity = (m_wheelParent.position - m_prevPosition) / Time.deltaTime;
+        m_prevPosition = m_wheelParent.position;
 
         //Store the forward and sideways direction to improve performance
-        Vector3 forward = m_dummyWheel.forward;
-        Vector3 sideways = -m_dummyWheel.right;
+        Vector3 forward = m_wheelParent.forward;
+        Vector3 sideways = -m_wheelParent.right;
 
         //Calculate the forward and sideways velocity components relative to the wheel
         Vector3 forwardVelocity = Vector3.Dot(velocity, forward) * forward;
@@ -352,7 +359,7 @@ public class WheelColliderSource : MonoBehaviour
 
         //Calculate the slip velocities. 
         //Note that these values are different from the standard slip calculation.
-        m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_wheelRadius);
+        m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
         m_sidewaysSlip = -Mathf.Sign(Vector3.Dot(sideways, sidewaysVelocity)) * sidewaysVelocity.magnitude;
 
     }
@@ -360,15 +367,15 @@ public class WheelColliderSource : MonoBehaviour
     private void CalculateForcesFromSlips()
     {
         //Forward slip force
-        m_totalForce = m_dummyWheel.forward * Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip);
+        m_totalForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip);
 
         //Lateral slip force
-        m_totalForce -= m_dummyWheel.right * Mathf.Sign(m_sidewaysSlip) * m_forwardFriction.Evaluate(m_sidewaysSlip);
+        m_totalForce -= m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * m_forwardFriction.Evaluate(m_sidewaysSlip);
 
         //Spring force
-        m_totalForce += m_dummyWheel.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        m_totalForce += m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
 
         //Spring damping force
-        m_totalForce += m_dummyWheel.up * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
+        m_totalForce += m_wheelParent.up * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
     }
 }

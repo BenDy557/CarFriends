@@ -9,9 +9,9 @@ public class Wheel : MonoBehaviour
     [SerializeField]
     private Vehicle m_owner;
 
-    //[SerializeField] private WheelCollider m_collider;
+    [SerializeField] private WheelColliderSource m_collider;
     //[SerializeField] private WheelCollider m_sphereCollider;
-    //public WheelCollider Collider { get { return m_collider; } }
+    public WheelColliderSource Collider { get { return m_collider; } }
     [SerializeField]
     private float m_radius;
     public float Radius { get { return m_radius; } }
@@ -66,35 +66,34 @@ public class Wheel : MonoBehaviour
 
         #region WheelColliderSetup
         //Properties
-        /*m_collider.mass = axleData.WheelData.WheelMass;
-		m_collider.radius = axleData.WheelData.WheelRadius;
-		m_collider.wheelDampingRate = axleData.WheelData.WheelDampingRate;
-		m_collider.suspensionDistance = axleData.WheelData.SuspensionDistance;
-		m_collider.forceAppPointDistance = axleData.WheelData.ForceAppPointDistance;
-		m_collider.center = axleData.WheelData.Center;*/
+        m_collider.Mass = axleData.WheelData.WheelMass;
+		m_collider.WheelRadius = axleData.WheelData.WheelRadius;
+		m_collider.SuspensionDistance = axleData.WheelData.SuspensionDistance;
+        //m_collider.forceAppPointDistance = axleData.WheelData.ForceAppPointDistance;
+		//m_collider.Center = axleData.WheelData.Center;
 
         //Spring
-        /*JointSpring tempSpring = m_collider.suspensionSpring;
-		tempSpring.spring = axleData.WheelData.Spring;
-		tempSpring.damper = axleData.WheelData.Damper;
-		tempSpring.targetPosition = axleData.WheelData.TargetPosition;
-		m_collider.suspensionSpring = tempSpring;*/
+        JointSpringSource tempSpring = m_collider.SuspensionSpring;
+		tempSpring.Spring = axleData.WheelData.Spring;
+		tempSpring.Damper = axleData.WheelData.Damper;
+		tempSpring.TargetPosition = axleData.WheelData.TargetPosition;
+		m_collider.SuspensionSpring = tempSpring;
 
         //forward
-        /*WheelFrictionCurve forwardFriction = m_collider.forwardFriction;
-		forwardFriction.extremumSlip = axleData.WheelData.ExtremiumSlipForward;
-		forwardFriction.extremumValue = axleData.WheelData.ExtremiumValueForward;
-		forwardFriction.asymptoteSlip = axleData.WheelData.AsymptoteSlipForward;
-		forwardFriction.asymptoteValue = axleData.WheelData.AsymptoteValueForward;
-		m_collider.forwardFriction = forwardFriction;*/
+        WheelFrictionCurveSource forwardFriction = m_collider.ForwardFriction;
+		forwardFriction.ExtremumSlip = axleData.WheelData.ExtremiumSlipForward;
+		forwardFriction.ExtremumValue = axleData.WheelData.ExtremiumValueForward;
+		forwardFriction.AsymptoteSlip = axleData.WheelData.AsymptoteSlipForward;
+		forwardFriction.AsymptoteValue = axleData.WheelData.AsymptoteValueForward;
+		m_collider.ForwardFriction = forwardFriction;
 
         //Sideways
-        /*WheelFrictionCurve sidewaysFriction = m_collider.sidewaysFriction;
-		sidewaysFriction.extremumSlip = axleData.WheelData.ExtremiumSlipSideways;
-		sidewaysFriction.extremumValue = axleData.WheelData.ExtremiumValueSideways;
-		sidewaysFriction.asymptoteSlip = axleData.WheelData.AsymptoteSlipSideways;
-		sidewaysFriction.asymptoteValue = axleData.WheelData.AsymptoteValueSideways;
-		m_collider.sidewaysFriction = sidewaysFriction;*/
+        WheelFrictionCurveSource sidewaysFriction = m_collider.SidewaysFriction;
+		sidewaysFriction.ExtremumSlip = axleData.WheelData.ExtremiumSlipSideways;
+		sidewaysFriction.ExtremumValue = axleData.WheelData.ExtremiumValueSideways;
+		sidewaysFriction.AsymptoteSlip = axleData.WheelData.AsymptoteSlipSideways;
+		sidewaysFriction.AsymptoteValue = axleData.WheelData.AsymptoteValueSideways;
+		m_collider.SidewaysFriction = sidewaysFriction;
         #endregion
 
         #region RaycastSetup
@@ -120,12 +119,12 @@ public class Wheel : MonoBehaviour
 
     public void FixedUpdate()
     {
-        //m_collider.motorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
+        m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
 
         Ray floorCast = new Ray(transform.position, -transform.up);
         RaycastHit raycastHit;
 
-        Debug.Log("relativeVelocity" + m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude);z
+        Debug.Log("relativeVelocity" + m_owner.Rigidbody.GetRelativePointVelocity(transform.localPosition).magnitude);
         
         if (Physics.Raycast(floorCast, out raycastHit, m_radius, m_wheelLayerMask, QueryTriggerInteraction.Collide))
         {
@@ -159,7 +158,7 @@ public class Wheel : MonoBehaviour
 
     public void Steer(float steeringInput)
 	{
-        //m_collider.steerAngle = steeringInput * m_maxWheelAngle;
+        m_collider.SteerAngle = steeringInput * m_maxWheelAngle;
         transform.localRotation = Quaternion.identity;
         transform.Rotate(new Vector3(0f, steeringInput * m_maxWheelAngle),Space.Self);
 	}
@@ -167,14 +166,14 @@ public class Wheel : MonoBehaviour
 	public void Brake(float brakeInput, bool eBrakeInput)
 	{
 		//Setup
-		//m_collider.brakeTorque = 0;
+		m_collider.BrakeTorque = 0;
 
 		//Braking
-		//m_collider.brakeTorque += m_maxBrakingTorque * brakeInput;
+		m_collider.BrakeTorque += m_maxBrakingTorque * brakeInput;
 
 		if (eBrakeInput)
 		{
-			//m_collider.brakeTorque += m_handBrakeTorque;
+			m_collider.BrakeTorque += m_handBrakeTorque;
 		}
 	}
 
@@ -208,8 +207,8 @@ public class Wheel : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        UnityEditor.Handles.color = Color.cyan;
-        UnityEditor.Handles.DrawWireDisc(transform.position, transform.right, m_radius);
+        //UnityEditor.Handles.color = Color.cyan;
+        //UnityEditor.Handles.DrawWireDisc(transform.position, transform.right, m_radius);
     }
 #endif
 }
