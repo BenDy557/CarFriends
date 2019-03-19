@@ -40,7 +40,8 @@ public class WheelColliderSource : MonoBehaviour
 
     private float m_forwardSlip;
     private float m_sidewaysSlip;
-    private Vector3 m_totalForce;
+    private Vector3 m_springForce;
+    private Vector3 m_wheelForce;
     private Vector3 m_center; //The center of the wheel, measured in the object's local space.
     private Vector3 m_prevPosition;
     private bool m_isGrounded; //Indicates whether the wheel currently collides with something (Read Only).
@@ -271,7 +272,11 @@ public class WheelColliderSource : MonoBehaviour
 
             CalculateForcesFromSlips();
 
-            m_rigidbody.AddForceAtPosition(m_totalForce, transform.position);
+            WheelHitSource wheelHit;
+            GetGroundHit(out wheelHit);
+
+            m_rigidbody.AddForceAtPosition(m_springForce, transform.position);
+            m_rigidbody.AddForceAtPosition(m_wheelForce, wheelHit.Point);
         }
     }
 
@@ -285,7 +290,7 @@ public class WheelColliderSource : MonoBehaviour
             wheelHit.Normal = m_raycastHit.normal;
             wheelHit.ForwardDir = m_wheelParent.forward;
             wheelHit.SidewaysDir = m_wheelParent.right;
-            wheelHit.Force = m_totalForce;
+            //wheelHit.Force = m_totalForce;
             wheelHit.ForwardSlip = m_forwardSlip;
             wheelHit.SidewaysSlip = m_sidewaysSlip;
         }
@@ -362,12 +367,15 @@ public class WheelColliderSource : MonoBehaviour
         float brakeVelocity = -Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
         m_wheelAngularVelocity += brakeVelocity;
 
-        //m_wheelAngularVelocity = 0f;
+        m_wheelAngularVelocity = 0f;
         //m_wheelAngularVelocity = m_wheelRotationAngle + freeRollingVelocityChange + motorVelocityChange + brakeVelocity;
         //Debug.Log("angularVelocity: " + m_wheelAngularVelocity + " " + name);
         //Debug.Log("freeRollingVelocityChange" + freeRollingVelocityChange);
         //Debug.Log("motorVelocityChange" + motorVelocityChange);
         //Debug.Log("brakeVelocity" + brakeVelocity);
+
+
+
     }
 
     private void CalculateSlips()
@@ -409,34 +417,36 @@ public class WheelColliderSource : MonoBehaviour
         GetGroundHit(out groundHit);
 
         //Forward slip force
-        float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
+        /*float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
         Vector3 forwardSlipForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * forwardFrictionValue;
-        forwardSlipForce = Vector3.zero;
+        forwardSlipForce = Vector3.zero;*/
 
         //Lateral slip force
         float lateralFrictionValue = m_useBasicFriction ? m_simpleLateralFriction.Evaluate(m_sidewaysSlip) : m_sidewaysFriction.Evaluate(m_sidewaysSlip);
         Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
-        lateralSlipForce = Vector3.zero;
-        Debug.Log("wheel" + name);
-        Debug.Log("ForwardSlip " + m_forwardSlip);
-        Debug.Log("Forward " + forwardSlipForce);
+        //lateralSlipForce = Vector3.zero;
+        //Debug.Log("wheel" + name);
+        //Debug.Log("ForwardSlip " + m_forwardSlip);
+        Debug.Log("sideways slip " + m_sidewaysSlip);
 
 
         //Spring force
-        //OLD//Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
-        Vector3 springForce = groundHit.Normal * (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        //Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        float springMagnitude = (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        float springDampingMagnitude = (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
 
-        //Spring damping force
-        Vector3 springDampingForce = groundHit.Normal * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
+        Vector3 resultantSpringForce = groundHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
 
-        m_totalForce = forwardSlipForce + lateralSlipForce + springForce + springDampingForce;
+        Vector3 fakeForce = transform.forward * m_wheelMotorTorque;
+
+        m_springForce = /*forwardSlipForce + */lateralSlipForce + resultantSpringForce;
+        m_wheelForce = fakeForce;
 
         //Debug.Log("MotorTorque " + m_wheelMotorTorque);
-        Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.005f), Color.red);
+        //Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.005f), Color.red);
         Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.005f), Color.green);
-        Debug.DrawLine(transform.position, transform.position + (springForce * 0.005f), Color.blue);
-        Debug.DrawLine(transform.position, transform.position + (springDampingForce * 0.005f), Color.magenta);
-        Debug.DrawLine(transform.position, transform.position + (m_totalForce * 0.005f), Color.white);
+        Debug.DrawLine(transform.position, transform.position + (resultantSpringForce * 0.005f), Color.blue);
+        Debug.DrawLine(transform.position, transform.position + (m_springForce * 0.005f), Color.white);
     }
 
     private bool UsingBasicFriction()

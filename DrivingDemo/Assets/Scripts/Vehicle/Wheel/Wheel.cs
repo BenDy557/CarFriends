@@ -192,6 +192,7 @@ public class Wheel : MonoBehaviour
         //Acceleration
         m_accelerationInput = accelerationInput;
         m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
+
     }
 
     public void SetDifferentialForce(float diffForce)
