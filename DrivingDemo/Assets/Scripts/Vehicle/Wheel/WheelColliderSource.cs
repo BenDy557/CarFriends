@@ -26,9 +26,18 @@ public class WheelColliderSource : MonoBehaviour
     private SphereCollider m_collider;
 
     [SerializeField]
+    private bool m_useBasicFriction = false;
+
+    [SerializeField, NaughtyAttributes.HideIf("UsingBasicFriction")]
     private WheelFrictionCurveSource m_forwardFriction; //Properties of tire friction in the direction the wheel is pointing in.
-    [SerializeField]
+    [SerializeField, NaughtyAttributes.HideIf("UsingBasicFriction")]
     private WheelFrictionCurveSource m_sidewaysFriction; //Properties of tire friction in the sideways direction.
+
+    [SerializeField, NaughtyAttributes.ShowIf("UsingBasicFriction")]
+    private AnimationCurve m_simpleForwardFriction;
+    [SerializeField, NaughtyAttributes.ShowIf("UsingBasicFriction")]
+    private AnimationCurve m_simpleLateralFriction;
+
     private float m_forwardSlip;
     private float m_sidewaysSlip;
     private Vector3 m_totalForce;
@@ -54,7 +63,7 @@ public class WheelColliderSource : MonoBehaviour
     [SerializeField]
     private JointSpringSource m_suspensionSpring; //The parameters of wheel's suspension. The suspension attempts to reach a target position
 
-    //Debugging color data
+    //Debugging 
     private Color GizmoColor = Color.cyan;
 
     //Standard accessor and mutator properties
@@ -139,6 +148,33 @@ public class WheelColliderSource : MonoBehaviour
         {
             return m_sidewaysFriction;
         }
+    }
+    public AnimationCurve SimpleForwardFriction
+    {
+        set
+        {
+            m_simpleForwardFriction = value;
+        }
+        get
+        {
+            return m_simpleForwardFriction;
+        }
+    }
+    public AnimationCurve SimpleLateralFriction
+    {
+        set
+        {
+            m_simpleLateralFriction = value;
+        }
+        get
+        {
+            return m_simpleLateralFriction;
+        }
+    }
+    public bool UseSimpleFrictionCurve
+    {
+        get { return m_useBasicFriction; }
+        set { m_useBasicFriction = value; }
     }
     public float MotorTorque
     {
@@ -239,33 +275,6 @@ public class WheelColliderSource : MonoBehaviour
         }
     }
 
-    public void OnDrawGizmosSelected()
-    {
-        Gizmos.color = GizmoColor;
-
-        Transform parentTransform;
-
-        if (m_wheelParent == null)
-            parentTransform = transform;
-        else
-            parentTransform = m_wheelParent;
-
-        //Draw the suspension
-        Gizmos.DrawLine(transform.position - parentTransform.up * m_radius, transform.position + (parentTransform.up * (m_suspensionDistance - m_suspensionCompression)));
-
-        //Draw the wheel
-        Vector3 point1;
-        Vector3 point0 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(0), Mathf.Cos(0)));
-        for (int i = 1; i <= 20; ++i)
-        {
-            point1 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(i / 20.0f * Mathf.PI * 2.0f), Mathf.Cos(i / 20.0f * Mathf.PI * 2.0f)));
-            Gizmos.DrawLine(point0, point1);
-            point0 = point1;
-
-        }
-        Gizmos.color = Color.white;
-    }
-
     public bool GetGroundHit(out WheelHitSource wheelHit)
     {
         wheelHit = new WheelHitSource();
@@ -334,28 +343,40 @@ public class WheelColliderSource : MonoBehaviour
         transform.localPosition = m_wheelParent.localPosition - Vector3.up * (m_suspensionDistance - m_suspensionCompression);
 
         //Apply rolling force to tires if they are grounded and don't have motor torque applied to them.
+        float freeRollingVelocityChange = 0f;
         if (m_isGrounded && m_wheelMotorTorque == 0)
         {
+            float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
             //Apply angular force to wheel from slip
-            m_wheelAngularVelocity -= Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip) / (Mathf.PI * 2.0f * m_radius) / m_mass * Time.deltaTime;
+            freeRollingVelocityChange = -Mathf.Sign(m_forwardSlip) * forwardFrictionValue / (Mathf.PI * 2.0f * m_radius) / m_mass * Time.deltaTime;
+            m_wheelAngularVelocity += freeRollingVelocityChange;
         }
 
 
         //Debug.Log("angularVelocity1: " + m_wheelAngularVelocity);
         //Apply motor torque
-        m_wheelAngularVelocity += m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
+        float motorVelocityChange = m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
+        m_wheelAngularVelocity += motorVelocityChange;
         //Debug.Log("angularVelocity2: " + m_wheelAngularVelocity);
         //Apply brake torque
-        m_wheelAngularVelocity -= Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
+        float brakeVelocity = -Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
+        m_wheelAngularVelocity += brakeVelocity;
 
-        //Debug.Log("angularVelocity3: " + m_wheelAngularVelocity);
+        //m_wheelAngularVelocity = 0f;
+        //m_wheelAngularVelocity = m_wheelRotationAngle + freeRollingVelocityChange + motorVelocityChange + brakeVelocity;
+        //Debug.Log("angularVelocity: " + m_wheelAngularVelocity + " " + name);
+        //Debug.Log("freeRollingVelocityChange" + freeRollingVelocityChange);
+        //Debug.Log("motorVelocityChange" + motorVelocityChange);
+        //Debug.Log("brakeVelocity" + brakeVelocity);
     }
 
     private void CalculateSlips()
     {
         //Calculate the wheel's linear velocity
-        Vector3 velocity = (m_wheelParent.position - m_prevPosition) / Time.deltaTime;
-        m_prevPosition = m_wheelParent.position;
+        //Vector3 velocity = (m_wheelParent.position - m_prevPosition) / Time.deltaTime;
+        //m_prevPosition = m_wheelParent.position;
+
+        Vector3 velocity = m_rigidbody.GetPointVelocity(m_wheelParent.position);
 
         //Store the forward and sideways direction to improve performance
         Vector3 forward = m_wheelParent.forward;
@@ -370,6 +391,10 @@ public class WheelColliderSource : MonoBehaviour
         m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
         m_sidewaysSlip = -Mathf.Sign(Vector3.Dot(sideways, sidewaysVelocity)) * sidewaysVelocity.magnitude;
 
+        //m_forwardSlip = 0f;
+        //m_sidewaysSlip = 0f;
+
+
         //Debug.Log("ForwardSlips: " + m_forwardSlip);
         //Debug.Log("ForwardFriction: " + m_forwardFriction.Evaluate(m_forwardSlip));
 
@@ -380,24 +405,71 @@ public class WheelColliderSource : MonoBehaviour
 
     private void CalculateForcesFromSlips()
     {
+        WheelHitSource groundHit;
+        GetGroundHit(out groundHit);
+
         //Forward slip force
-        Vector3 forwardSlipForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * m_forwardFriction.Evaluate(m_forwardSlip);
+        float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
+        Vector3 forwardSlipForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * forwardFrictionValue;
+        forwardSlipForce = Vector3.zero;
 
         //Lateral slip force
-        Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * m_forwardFriction.Evaluate(m_sidewaysSlip);
+        float lateralFrictionValue = m_useBasicFriction ? m_simpleLateralFriction.Evaluate(m_sidewaysSlip) : m_sidewaysFriction.Evaluate(m_sidewaysSlip);
+        Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
+        lateralSlipForce = Vector3.zero;
+        Debug.Log("wheel" + name);
+        Debug.Log("ForwardSlip " + m_forwardSlip);
+        Debug.Log("Forward " + forwardSlipForce);
+
 
         //Spring force
-        Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        //OLD//Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        Vector3 springForce = groundHit.Normal * (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
 
         //Spring damping force
-        Vector3 springDampingForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
+        Vector3 springDampingForce = groundHit.Normal * (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
 
         m_totalForce = forwardSlipForce + lateralSlipForce + springForce + springDampingForce;
 
-        Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.05f), Color.red);
-        Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.05f), Color.green);
+        //Debug.Log("MotorTorque " + m_wheelMotorTorque);
+        Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.005f), Color.red);
+        Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.005f), Color.green);
         Debug.DrawLine(transform.position, transform.position + (springForce * 0.005f), Color.blue);
         Debug.DrawLine(transform.position, transform.position + (springDampingForce * 0.005f), Color.magenta);
         Debug.DrawLine(transform.position, transform.position + (m_totalForce * 0.005f), Color.white);
     }
+
+    private bool UsingBasicFriction()
+    {
+        return m_useBasicFriction;
+    }
+
+#if UNITY_EDITOR
+    public void OnDrawGizmosSelected()
+    {
+        Gizmos.color = GizmoColor;
+
+        Transform parentTransform;
+
+        if (m_wheelParent == null)
+            parentTransform = transform;
+        else
+            parentTransform = m_wheelParent;
+
+        //Draw the suspension
+        Gizmos.DrawLine(transform.position - parentTransform.up * m_radius, transform.position + (parentTransform.up * (m_suspensionDistance - m_suspensionCompression)));
+
+        //Draw the wheel
+        Vector3 point1;
+        Vector3 point0 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(0), Mathf.Cos(0)));
+        for (int i = 1; i <= 20; ++i)
+        {
+            point1 = transform.TransformPoint(m_radius * new Vector3(0, Mathf.Sin(i / 20.0f * Mathf.PI * 2.0f), Mathf.Cos(i / 20.0f * Mathf.PI * 2.0f)));
+            Gizmos.DrawLine(point0, point1);
+            point0 = point1;
+
+        }
+        Gizmos.color = Color.white;
+    }
+#endif
 }

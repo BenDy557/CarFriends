@@ -5,7 +5,7 @@ using UnityEngine;
 public class ShockAbsorberFollow : MonoBehaviour
 {
 	//public GameObject mShockAbsorber;
-	public WheelCollider mWheel;
+	public WheelColliderSource mWheel;
 
 	void Start () {
 		
@@ -20,7 +20,7 @@ public class ShockAbsorberFollow : MonoBehaviour
 		transform.up = transform.parent.transform.up;
 		Vector3 tWheelPos;
 		Quaternion tWheelRotation;
-		mWheel.GetWorldPose (out tWheelPos,out tWheelRotation);
-		transform.LookAt (tWheelPos);
+		//mWheel.transform.position GetWorldPose (out tWheelPos,out tWheelRotation);
+		transform.LookAt (mWheel.transform.position);
 	}
 }

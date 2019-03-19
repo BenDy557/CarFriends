@@ -17,10 +17,18 @@ public class Axle : MonoBehaviour
 	public bool DriveEnabled {get{return m_driveEnabled;}}
 
     [SerializeField]
+    private bool m_antiRollBarEnabled = true;
+    [SerializeField]
+    private bool m_differentialEnabled = true;
+
+
+    [SerializeField]
     private float m_antiSwayBarForce = 5000f;
 
 	[SerializeField] private List<Wheel> m_wheels;
 	public List<Wheel> Wheels {get{return m_wheels;}}
+
+
 
     public void ApplySetupData(VehicleSetUpData setupData, AxleData axleData)
     {
@@ -38,8 +46,16 @@ public class Axle : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		UpdateDifferential();
-		UpdateAntiRollBar();
+        if (m_differentialEnabled)
+            UpdateDifferential();
+        else
+        {
+            m_wheels[0].SetDifferentialForce(0f);
+            m_wheels[1].SetDifferentialForce(0f);
+        }
+
+        if (m_antiRollBarEnabled)
+            UpdateAntiRollBar();
 	}
 
 	private void UpdateDifferential()
@@ -67,25 +83,25 @@ public class Axle : MonoBehaviour
 
 	private void UpdateAntiRollBar()
 	{
-        WheelHit hit = new WheelHit();
+        WheelHitSource hit = new WheelHitSource();
         float travelL = 1.0f;
         float travelR = 1.0f;
 
         Wheel wheelL = m_wheels[0];
         Wheel wheelR = m_wheels[1];
 
-        bool groundedL = wheelL.GetGroundHit(out hit);
+        bool groundedL = wheelL.Collider.GetGroundHit(out hit);
 
         if (groundedL)
         {
-            travelL = (-wheelL.transform.InverseTransformPoint(hit.point).y - wheelL.Radius) / wheelL.SuspensionDistance;
+            travelL = (-wheelL.transform.InverseTransformPoint(hit.Point).y - wheelL.Radius) / wheelL.SuspensionDistance;
         }
 
-        bool groundedR = wheelR.GetGroundHit(out hit);
+        bool groundedR = wheelR.Collider.GetGroundHit(out hit);
 
         if (groundedR)
         {
-            travelR = (-wheelR.transform.InverseTransformPoint(hit.point).y - wheelR.Radius) / wheelR.SuspensionDistance;
+            travelR = (-wheelR.transform.InverseTransformPoint(hit.Point).y - wheelR.Radius) / wheelR.SuspensionDistance;
         }
 
         float antiRollForce = (travelL - travelR) * m_antiSwayBarForce;

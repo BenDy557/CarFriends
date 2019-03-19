@@ -29,18 +29,18 @@ public class WheelView : View
 
     private void Update()
     {
-        WheelHit tempWheelHit;
-        if (m_wheel.GetGroundHit(out tempWheelHit))
+        WheelHitSource tempWheelHit;
+        if (m_wheel.Collider.GetGroundHit(out tempWheelHit))
         {
-            m_fwdSlipEmitter.transform.position = tempWheelHit.point + (Vector3.up * 0.3f);//TODO//magic numbers
-            m_fwdSlipEmitter.transform.forward = tempWheelHit.forwardDir * (tempWheelHit.forwardSlip < 0 ? 1 : -1);
+            m_fwdSlipEmitter.transform.position = tempWheelHit.Point + (Vector3.up * 0.3f);//TODO//magic numbers
+            m_fwdSlipEmitter.transform.forward = tempWheelHit.ForwardDir * (tempWheelHit.ForwardSlip < 0 ? 1 : -1);
 
             ParticleSystem.MainModule tempMainModule = m_fwdSlipEmitter.main;
-            tempMainModule.startSpeed = Mathf.Abs(tempWheelHit.forwardSlip) * m_fwdSlipMaxSpeed;
+            tempMainModule.startSpeed = Mathf.Abs(tempWheelHit.ForwardSlip) * m_fwdSlipMaxSpeed;
 
             ParticleSystem.EmissionModule tempEmissionModule = m_fwdSlipEmitter.emission;
             tempEmissionModule.enabled = true;
-            tempEmissionModule.rateOverTime = Mathf.Abs(tempWheelHit.forwardSlip) * m_fwdSlipMaxEmissionRate;
+            tempEmissionModule.rateOverTime = Mathf.Abs(tempWheelHit.ForwardSlip) * m_fwdSlipMaxEmissionRate;
 
             //tempEmissionModule.rateOverTime = tempWheelHit.sidewaysSlip;
         }

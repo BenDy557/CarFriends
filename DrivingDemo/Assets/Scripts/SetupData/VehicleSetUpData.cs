@@ -165,8 +165,18 @@ public class WheelData
 	public float AsymptoteValueSideways { get { return m_asymptoteValueSideways; } set { m_asymptoteValueSideways = value; } }
 
 
+    [SerializeField, Header("Simple")]
+    private bool m_useSimpleFrictionCurve;
+    public bool UseSimpleFrictionCurve { get { return m_useSimpleFrictionCurve; } }
+    [SerializeField]
+    private AnimationCurve m_forwardFrictionCurve;
+    public AnimationCurve ForwardFrictionCurve { get { return m_forwardFrictionCurve; } }
+    [SerializeField]
+    private AnimationCurve m_lateralFrictionCurve;
+    public AnimationCurve LateralFrictionCurve { get { return m_lateralFrictionCurve; } }
 
-	[SerializeField] 
+
+    [SerializeField] 
 	private GameObject m_model;
 	public GameObject Model { get { return m_model; } }
 

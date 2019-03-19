@@ -10,6 +10,12 @@ public class GameManager : Singleton<GameManager>
     public Course firstCourse;
     public int laps = 1;
 
+    private void Awake()
+    {
+        base.Awake();
+        Application.targetFrameRate = 60;
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.T))
