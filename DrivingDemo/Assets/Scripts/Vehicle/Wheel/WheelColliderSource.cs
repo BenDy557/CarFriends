@@ -38,7 +38,7 @@ public class WheelColliderSource : MonoBehaviour
     [SerializeField, NaughtyAttributes.ShowIf("UsingBasicFriction")]
     private AnimationCurve m_simpleLateralFriction;
 
-    private float m_forwardSlip;
+    //private float m_forwardSlip;
     private float m_sidewaysSlip;
     private Vector3 m_springForce;
     private Vector3 m_wheelForce;
@@ -277,6 +277,15 @@ public class WheelColliderSource : MonoBehaviour
 
             m_rigidbody.AddForceAtPosition(m_springForce, transform.position);
             m_rigidbody.AddForceAtPosition(m_wheelForce, wheelHit.Point);
+
+        }
+
+        if (m_suspensionCompression > 0.8f)
+        {
+            WheelHitSource wheelHit;
+            GetGroundHit(out wheelHit);
+            Debug.Log("suspComp " + m_suspensionCompression + wheelHit.Collider, wheelHit.Collider.gameObject);
+            //UnityEditor.EditorApplication.Beep();
         }
     }
 
@@ -291,7 +300,7 @@ public class WheelColliderSource : MonoBehaviour
             wheelHit.ForwardDir = m_wheelParent.forward;
             wheelHit.SidewaysDir = m_wheelParent.right;
             //wheelHit.Force = m_totalForce;
-            wheelHit.ForwardSlip = m_forwardSlip;
+            //wheelHit.ForwardSlip = m_forwardSlip;
             wheelHit.SidewaysSlip = m_sidewaysSlip;
         }
 
@@ -301,7 +310,7 @@ public class WheelColliderSource : MonoBehaviour
     private void UpdateSuspension()
     {
         //Raycast down along the suspension to find out how far the ground is to the wheel
-        bool result = Physics.Raycast(new Ray(m_wheelParent.position, -m_wheelParent.up), out m_raycastHit, m_radius + m_suspensionDistance);
+        bool result = Physics.Raycast(new Ray(m_wheelParent.position, -m_wheelParent.up), out m_raycastHit, m_radius + m_suspensionDistance, LayerManager.Instance.Drivable);
 
         if (result) //The wheel is in contact with the ground
         {
@@ -338,7 +347,12 @@ public class WheelColliderSource : MonoBehaviour
         //Set steering angle of the wheel dummy
         m_wheelParent.localEulerAngles = new Vector3(0, m_wheelSteerAngle, 0);
 
+        float wheelCircumference = 2f * Mathf.PI * m_radius;
+        m_wheelAngularVelocity = (Vector3.Dot(m_rigidbody.velocity, m_wheelParent.forward) * 360f) / wheelCircumference;
+        //Debug.Log("VehicleVelocity" + m_rigidbody.velocity);
+        //Debug.Log("WheelAngularVelocity" + m_wheelAngularVelocity);
         //Calculate the wheel's rotation given it's angular velocity
+        m_wheelAngularVelocity = 0f;
         m_wheelRotationAngle += m_wheelAngularVelocity * Time.deltaTime;
 
         //Set the rotation and steer angle of the wheel model
@@ -347,27 +361,15 @@ public class WheelColliderSource : MonoBehaviour
         //Set the wheel's position given the current suspension compression
         transform.localPosition = m_wheelParent.localPosition - Vector3.up * (m_suspensionDistance - m_suspensionCompression);
 
-        //Apply rolling force to tires if they are grounded and don't have motor torque applied to them.
-        float freeRollingVelocityChange = 0f;
-        if (m_isGrounded && m_wheelMotorTorque == 0)
-        {
-            float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
-            //Apply angular force to wheel from slip
-            freeRollingVelocityChange = -Mathf.Sign(m_forwardSlip) * forwardFrictionValue / (Mathf.PI * 2.0f * m_radius) / m_mass * Time.deltaTime;
-            m_wheelAngularVelocity += freeRollingVelocityChange;
-        }
-
-
         //Debug.Log("angularVelocity1: " + m_wheelAngularVelocity);
         //Apply motor torque
-        float motorVelocityChange = m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
-        m_wheelAngularVelocity += motorVelocityChange;
+        //float motorVelocityChange = m_wheelMotorTorque / m_radius / m_mass * Time.deltaTime;
         //Debug.Log("angularVelocity2: " + m_wheelAngularVelocity);
         //Apply brake torque
-        float brakeVelocity = -Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
-        m_wheelAngularVelocity += brakeVelocity;
+        /*float brakeVelocity = -Mathf.Sign(m_wheelAngularVelocity) * Mathf.Min(Mathf.Abs(m_wheelAngularVelocity), m_wheelBrakeTorque * m_radius / m_mass * Time.deltaTime);
+        m_wheelAngularVelocity += brakeVelocity;*/
 
-        m_wheelAngularVelocity = 0f;
+        //m_wheelAngularVelocity = 0f;
         //m_wheelAngularVelocity = m_wheelRotationAngle + freeRollingVelocityChange + motorVelocityChange + brakeVelocity;
         //Debug.Log("angularVelocity: " + m_wheelAngularVelocity + " " + name);
         //Debug.Log("freeRollingVelocityChange" + freeRollingVelocityChange);
@@ -396,7 +398,7 @@ public class WheelColliderSource : MonoBehaviour
 
         //Calculate the slip velocities. 
         //Note that these values are different from the standard slip calculation.
-        m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
+        //m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
         m_sidewaysSlip = -Mathf.Sign(Vector3.Dot(sideways, sidewaysVelocity)) * sidewaysVelocity.magnitude;
 
         //m_forwardSlip = 0f;
@@ -427,7 +429,7 @@ public class WheelColliderSource : MonoBehaviour
         //lateralSlipForce = Vector3.zero;
         //Debug.Log("wheel" + name);
         //Debug.Log("ForwardSlip " + m_forwardSlip);
-        Debug.Log("sideways slip " + m_sidewaysSlip);
+        //Debug.Log("sideways slip " + m_sidewaysSlip);
 
 
         //Spring force
@@ -437,7 +439,7 @@ public class WheelColliderSource : MonoBehaviour
 
         Vector3 resultantSpringForce = groundHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
 
-        Vector3 fakeForce = transform.forward * m_wheelMotorTorque;
+        Vector3 fakeForce = m_wheelParent.forward * m_wheelMotorTorque;
 
         m_springForce = /*forwardSlipForce + */lateralSlipForce + resultantSpringForce;
         m_wheelForce = fakeForce;
