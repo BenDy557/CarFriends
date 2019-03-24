@@ -62,7 +62,7 @@ public class VehicleController : MonoBehaviour
         }
         else if (!m_netObject.IsNetworkControlled)
         {
-            m_vehicleInput.acceleration = 0.5f;
+            m_vehicleInput.acceleration = 1f;
             SteerTowards(m_target);
         }
     }
