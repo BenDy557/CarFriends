@@ -23,6 +23,10 @@ public class WheelColliderSource : MonoBehaviour
     [SerializeField]
     private Rigidbody m_rigidbody;
 
+    //private Vector3 m_wheelPosition;
+    //private Vector3 m_wheelRotation;
+
+
     private SphereCollider m_collider;
 
     [SerializeField]
@@ -284,7 +288,6 @@ public class WheelColliderSource : MonoBehaviour
         {
             WheelHitSource wheelHit;
             GetGroundHit(out wheelHit);
-            Debug.Log("suspComp " + m_suspensionCompression + wheelHit.Collider, wheelHit.Collider.gameObject);
             //UnityEditor.EditorApplication.Beep();
         }
     }
@@ -352,11 +355,12 @@ public class WheelColliderSource : MonoBehaviour
         //Debug.Log("VehicleVelocity" + m_rigidbody.velocity);
         //Debug.Log("WheelAngularVelocity" + m_wheelAngularVelocity);
         //Calculate the wheel's rotation given it's angular velocity
-        m_wheelAngularVelocity = 0f;
-        m_wheelRotationAngle += m_wheelAngularVelocity * Time.deltaTime;
+        //m_wheelAngularVelocity = 0f;
+        //m_wheelRotationAngle += m_wheelAngularVelocity * Time.deltaTime;
 
         //Set the rotation and steer angle of the wheel model
-        this.transform.localEulerAngles = new Vector3(m_wheelRotationAngle, m_wheelSteerAngle, 0);
+        //this.transform.localEulerAngles = new Vector3(m_wheelRotationAngle, m_wheelSteerAngle, 0);
+        //this.transform.localEulerAngles = new Vector3(0f, m_wheelSteerAngle, 0f);
 
         //Set the wheel's position given the current suspension compression
         transform.localPosition = m_wheelParent.localPosition - Vector3.up * (m_suspensionDistance - m_suspensionCompression);
@@ -375,9 +379,6 @@ public class WheelColliderSource : MonoBehaviour
         //Debug.Log("freeRollingVelocityChange" + freeRollingVelocityChange);
         //Debug.Log("motorVelocityChange" + motorVelocityChange);
         //Debug.Log("brakeVelocity" + brakeVelocity);
-
-
-
     }
 
     private void CalculateSlips()
@@ -403,7 +404,6 @@ public class WheelColliderSource : MonoBehaviour
 
         //m_forwardSlip = 0f;
         //m_sidewaysSlip = 0f;
-
 
         //Debug.Log("ForwardSlips: " + m_forwardSlip);
         //Debug.Log("ForwardFriction: " + m_forwardFriction.Evaluate(m_forwardSlip));

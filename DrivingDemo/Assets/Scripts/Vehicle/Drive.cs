@@ -71,7 +71,7 @@ public class Drive : MonoBehaviour
         {
             m_flip = false;
             m_rigidBody.AddForce(Vector3.up * 7f, ForceMode.VelocityChange);
-            m_rigidBody.AddRelativeTorque(Vector3.forward * 2f, ForceMode.VelocityChange);
+            m_rigidBody.AddRelativeTorque(Vector3.forward * 2.5f, ForceMode.VelocityChange);
         }
     }
 

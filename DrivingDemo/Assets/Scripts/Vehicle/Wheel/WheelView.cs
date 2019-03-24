@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class WheelView : View
 {
+    [SerializeField]
     private Wheel m_wheel;
-
+    [SerializeField]
+    private WheelColliderSource m_wheelCollider;
     [SerializeField]
     private ParticleSystem m_fwdSlipEmitterPrefab;
     [SerializeField]
@@ -15,6 +17,9 @@ public class WheelView : View
 
     private ParticleSystem m_fwdSlipEmitter;
 
+
+    private float m_wheelRotation = 0f;
+
     public void Init(VehicleSetUpData setupData, AxleData axleData)
     {
         m_fwdSlipEmitterPrefab = axleData.WheelData.FwdSlipEmitterPrefab;
@@ -23,8 +28,6 @@ public class WheelView : View
     private void Start()
     {
         m_fwdSlipEmitter = Instantiate(m_fwdSlipEmitterPrefab, transform);
-
-        m_wheel = GetComponent<Wheel>();
     }
 
     private void Update()
@@ -49,6 +52,13 @@ public class WheelView : View
             ParticleSystem.EmissionModule tempEmissionModule = m_fwdSlipEmitter.emission;
             tempEmissionModule.enabled = false;
         }
+
+
+        //transform.localEulerAngles = m_wheelCollider.SteerAngle
+        m_wheelRotation += m_wheelCollider.RPM * Time.deltaTime;
+
+        transform.localRotation = Quaternion.AngleAxis(m_wheelCollider.SteerAngle, Vector3.up);
+        transform.Rotate(Vector3.right, m_wheelRotation);
 
     }
 }
