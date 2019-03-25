@@ -20,7 +20,7 @@ public abstract class TriggerZone : MonoBehaviour
 
     protected CapsuleCollider m_collider;
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         m_collider = gameObject.AddComponent<CapsuleCollider>();
         m_collider.isTrigger = true;

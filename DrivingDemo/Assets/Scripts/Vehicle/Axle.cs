@@ -73,11 +73,11 @@ public class Axle : MonoBehaviour
 
 
         float wheelLRPMDiff = wheelL.Rpm - rpmAvg;
-        float torqueL = (wheelLRPMDiff / rpmDiffHigh) * -m_wheels[0].MaxEngineTorque;
+        float torqueL = (wheelLRPMDiff / rpmDiffHigh) * -m_owner.MaxEngineTorque;
         m_wheels[0].SetDifferentialForce(torqueL);
 
         float wheelRRPMDiff = wheelR.Rpm - rpmAvg;
-        float torqueR = (wheelRRPMDiff / rpmDiffHigh) * -m_wheels[1].MaxEngineTorque;
+        float torqueR = (wheelRRPMDiff / rpmDiffHigh) * -m_owner.MaxEngineTorque;
         m_wheels[1].SetDifferentialForce(torqueR);
     }
 

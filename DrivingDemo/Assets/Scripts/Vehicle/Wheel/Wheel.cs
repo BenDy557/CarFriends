@@ -42,8 +42,8 @@ public class Wheel : MonoBehaviour
     [SerializeField] private float m_maxWheelAngle = 0;
     [SerializeField] private float m_maxBrakingTorque = 0;
     [SerializeField] private float m_handBrakeTorque = 0;
-    [SerializeField] private float m_maxEngineTorque = 0;//TODO shouldnt be down here, should be sent via engine/drive
-    public float MaxEngineTorque { get { return m_maxEngineTorque; } }
+    //[SerializeField] private float m_maxEngineTorque = 0;//TODO shouldnt be down here, should be sent via engine/drive
+    //public float MaxEngineTorque { get { return m_maxEngineTorque; } }
 
     private float m_accelerationInput = 0f;
     private float m_differentialForce = 0f;
@@ -62,7 +62,7 @@ public class Wheel : MonoBehaviour
         //VehicleData
         m_maxBrakingTorque = vehicleSetUpData.MaxBrakingTorque;
         m_handBrakeTorque = vehicleSetUpData.HandBrakeTorque;
-        m_maxEngineTorque = vehicleSetUpData.MaxEngineTorque;
+        //m_maxEngineTorque = vehicleSetUpData.MaxEngineTorque;
 
         //WheelData
 
@@ -191,7 +191,7 @@ public class Wheel : MonoBehaviour
     {
         //Acceleration
         m_accelerationInput = accelerationInput;
-        m_collider.MotorTorque = (m_maxEngineTorque * m_accelerationInput) + m_differentialForce;
+        m_collider.MotorTorque = (m_owner.MaxEngineTorque * m_accelerationInput) + m_differentialForce;
 
     }
 

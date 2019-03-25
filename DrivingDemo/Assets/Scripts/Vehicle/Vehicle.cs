@@ -39,6 +39,8 @@ public class Vehicle : MonoBehaviour, INetObject
     public Drive Engine { get { return m_engine; } }
 
 
+    private List<VehicleEffect> m_effects = new List<VehicleEffect>();
+    
 
     //Input
     VehicleInput m_vehicleInput;
@@ -49,6 +51,19 @@ public class Vehicle : MonoBehaviour, INetObject
     private float m_steeringInput;
     //private bool m_flip = false;
     //private bool m_handbrake = false;
+
+    private float m_maxEngineTorque;
+    public float MaxEngineTorque
+    {
+        get { return m_maxEngineTorque; }
+        set
+        {
+            //find a better way of modifying vehicle data between components
+            Debug.LogWarning("BAD CODE");
+            m_maxEngineTorque = value;
+        }
+    }
+
 
     public IEnumerable<Wheel> Wheels
     {
@@ -78,6 +93,16 @@ public class Vehicle : MonoBehaviour, INetObject
             ApplySetupData(m_setupData);
     }
 
+    private void Update()
+    {
+        for(int i = m_effects.Count -1;i>0;i--)
+        {
+            m_effects[i].Update();
+            if (m_effects[i].IsFinished)
+                m_effects.RemoveAt(i);
+        }
+    }
+
     [Button]
     private void ApplySetupData()
     {
@@ -96,6 +121,8 @@ public class Vehicle : MonoBehaviour, INetObject
         //m_rigidBody.constraints = RigidbodyConstraints.None;
         m_rigidBody.centerOfMass = m_chassis.CentreOfMass;
 
+        m_maxEngineTorque = setupData.MaxEngineTorque;
+
         m_engine.ApplySetupData(setupData, m_vehicleInput);
 
 
@@ -112,6 +139,17 @@ public class Vehicle : MonoBehaviour, INetObject
             SendLocomotionInfo();
         }
     }*/
+
+    #region Effects
+    public void ApplyEffect(VehicleEffect effectIn)
+    {
+        if (m_effects.Count == 1)
+            return;
+
+        m_effects.Add(effectIn);
+        effectIn.Start(this);
+    }
+    #endregion
 
     #region Network
 

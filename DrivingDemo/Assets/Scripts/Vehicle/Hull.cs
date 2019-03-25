@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class Hull : MonoBehaviour
 {
-
     [SerializeField]
     private Vehicle m_owner;
     public Vehicle Owner { get { return m_owner; } }
-
-
+    
     public void Start()
     {
         if (m_owner == null)
