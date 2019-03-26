@@ -38,7 +38,7 @@ public class Vehicle : MonoBehaviour, INetObject
     private Drive m_engine;
     public Drive Engine { get { return m_engine; } }
 
-
+    [SerializeField]
     private List<VehicleEffect> m_effects = new List<VehicleEffect>();
     
 
@@ -52,6 +52,7 @@ public class Vehicle : MonoBehaviour, INetObject
     //private bool m_flip = false;
     //private bool m_handbrake = false;
 
+    [ReadOnly]    
     private float m_maxEngineTorque;
     public float MaxEngineTorque
     {
@@ -95,12 +96,14 @@ public class Vehicle : MonoBehaviour, INetObject
 
     private void Update()
     {
-        for(int i = m_effects.Count -1;i>0;i--)
+        for(int i = m_effects.Count -1;i>=0;i--)
         {
             m_effects[i].Update();
             if (m_effects[i].IsFinished)
                 m_effects.RemoveAt(i);
         }
+
+        
     }
 
     [Button]
@@ -143,7 +146,7 @@ public class Vehicle : MonoBehaviour, INetObject
     #region Effects
     public void ApplyEffect(VehicleEffect effectIn)
     {
-        if (m_effects.Count == 1)
+        if (m_effects.Count >= 1)
             return;
 
         m_effects.Add(effectIn);
@@ -187,6 +190,7 @@ public class Vehicle : MonoBehaviour, INetObject
     #endregion
 }
 
+[System.Serializable]
 public class VehicleInput
 {
     public float steering;

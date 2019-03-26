@@ -17,8 +17,10 @@ public class VehicleEffect
     private Vehicle m_owner = null;
     [SerializeField]
     private EffectType m_type = EffectType.NONE;
+    public EffectType Type { get { return m_type; } }
     [SerializeField]
     private float m_duration;
+    public float Duration { get { return m_duration; } }
     [SerializeField]
     private float m_timer;
 
@@ -30,14 +32,28 @@ public class VehicleEffect
     }
     [SerializeField]
     private ScaleType m_scaleType;
+    public ScaleType ScaleModifierType { get { return m_scaleType; } }
     [SerializeField]
     private float m_engineModifier;
-    private bool m_isFinished;
+    public float EngineModifier { get { return m_engineModifier; } }
+
+
+    private bool m_isFinished = false;
     public bool IsFinished { get {return m_isFinished;}}
 
+
     #region GeneralMethods
+    public VehicleEffect(VehicleEffect effectIn)
+    {
+        m_type = effectIn.Type;
+        m_duration = effectIn.Duration;
+        m_scaleType = effectIn.ScaleModifierType;
+        m_engineModifier = effectIn.m_engineModifier;
+    }
+
     public void Start(Vehicle vehicle)
     {
+        m_isFinished = false;
         m_owner = vehicle;
 
         m_timer = m_duration;
@@ -54,7 +70,10 @@ public class VehicleEffect
 
     public void Update()
     {
+        Debug.Log("Timer " + m_timer);
         m_timer -= Time.deltaTime;
+
+        Debug.Log("Timer " + m_timer);
 
         if (m_timer <= 0)
         {

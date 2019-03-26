@@ -20,7 +20,7 @@ public class BoostZone : TriggerZone
         if (other.CompareTag("Hull"))
         {
             //other.GetComponent<Hull>().Owner.ApplyEffect(m_data == null ? m_effect : m_data.Effect);
-            other.GetComponent<Hull>().Owner.ApplyEffect(m_effect);
+            other.GetComponent<Hull>().Owner.ApplyEffect(new VehicleEffect(m_effect));
         }
     }
 

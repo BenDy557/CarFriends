@@ -313,7 +313,7 @@ public class WheelColliderSource : MonoBehaviour
     private void UpdateSuspension()
     {
         //Raycast down along the suspension to find out how far the ground is to the wheel
-        bool result = Physics.Raycast(new Ray(m_wheelParent.position, -m_wheelParent.up), out m_raycastHit, m_radius + m_suspensionDistance, LayerManager.Instance.Drivable);
+        bool result = Physics.Raycast(new Ray(m_wheelParent.position, -m_wheelParent.up), out m_raycastHit, m_radius + m_suspensionDistance, LayerManager.Instance.Drivable,QueryTriggerInteraction.Ignore);
 
         if (result) //The wheel is in contact with the ground
         {

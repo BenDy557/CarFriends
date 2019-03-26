@@ -10,6 +10,7 @@ public class VehicleController : MonoBehaviour
     [SerializeField]
     private Vehicle m_vehicle;
 
+    [SerializeField]
     private VehicleInput m_vehicleInput;
     public VehicleInput VehicleInput
     {
