@@ -9,6 +9,8 @@ public class BoostZone : TriggerZone
     [SerializeField]
     private VehicleEffect m_effect;
 
+    private List<Vehicle> m_ignoreList = new List<Vehicle>();
+
 	protected override void Awake()
     {
         base.Awake();
@@ -20,10 +22,19 @@ public class BoostZone : TriggerZone
         if (other.CompareTag("Hull"))
         {
             //other.GetComponent<Hull>().Owner.ApplyEffect(m_data == null ? m_effect : m_data.Effect);
-            other.GetComponent<Hull>().Owner.ApplyEffect(new VehicleEffect(m_effect));
+            Vehicle tempVehicle = other.GetComponent<Hull>().Owner;
+
+            if (m_ignoreList.Contains(tempVehicle))
+                return;
+
+            tempVehicle.ApplyEffect(new VehicleEffect(m_effect));
         }
     }
 
+    public void AddToIgnoreList(Vehicle vehicle)
+    {
+        m_ignoreList.Add(vehicle);
+    }
     /*private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Hull"))

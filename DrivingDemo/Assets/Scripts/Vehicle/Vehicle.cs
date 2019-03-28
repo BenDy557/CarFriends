@@ -40,7 +40,13 @@ public class Vehicle : MonoBehaviour, INetObject
 
     [SerializeField]
     private List<VehicleEffect> m_effects = new List<VehicleEffect>();
-    
+
+    [SerializeField]
+    private GameObject m_draftingPrefab = null;
+    [SerializeField]
+    private float m_draftingSpeedLimit = 1f;
+    private BoostZone m_prevDraftingObject;
+    private float m_draftingSpawnDistance = 2f;
 
     //Input
     VehicleInput m_vehicleInput;
@@ -103,6 +109,15 @@ public class Vehicle : MonoBehaviour, INetObject
                 m_effects.RemoveAt(i);
         }
 
+        if (m_rigidBody.velocity.sqrMagnitude > m_draftingSpeedLimit * m_draftingSpeedLimit)
+        {
+            if (m_prevDraftingObject == null || Vector3.Distance(m_prevDraftingObject.transform.position, transform.position) > m_draftingSpawnDistance)
+            {
+                m_prevDraftingObject = Instantiate(m_draftingPrefab, transform.position, Quaternion.identity).GetComponent<BoostZone>();
+                m_prevDraftingObject.AddToIgnoreList(this);
+                Destroy(m_prevDraftingObject.gameObject, 1.2f);
+            }
+        }
         
     }
 

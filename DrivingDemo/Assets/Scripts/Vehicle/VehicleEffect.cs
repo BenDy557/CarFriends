@@ -21,8 +21,7 @@ public class VehicleEffect
     [SerializeField]
     private float m_duration;
     public float Duration { get { return m_duration; } }
-    [SerializeField]
-    private float m_timer;
+    private float m_timer = 0f;
 
     public enum ScaleType
     {
