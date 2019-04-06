@@ -401,6 +401,8 @@ public class WheelColliderSource : MonoBehaviour
         //Note that these values are different from the standard slip calculation.
         //m_forwardSlip = -Mathf.Sign(Vector3.Dot(forward, forwardVelocity)) * forwardVelocity.magnitude + (m_wheelAngularVelocity * Mathf.PI / 180.0f * m_radius);
         m_sidewaysSlip = -Mathf.Sign(Vector3.Dot(sideways, sidewaysVelocity)) * sidewaysVelocity.magnitude;
+        //Debug.Log("Sideways slip: " + gameObject.name + " " + (Mathf.Round(m_sidewaysSlip * 100)/100f), gameObject);
+
 
         //m_forwardSlip = 0f;
         //m_sidewaysSlip = 0f;

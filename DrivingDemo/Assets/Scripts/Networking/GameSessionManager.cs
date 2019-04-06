@@ -267,7 +267,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
     private void OnDrawGizmos()
     {
-        Utils.DrawCross(m_spawnPoint.position, Color.magenta);
+        if (m_spawnPoint != null)
+            Utils.DrawCross(m_spawnPoint.position, Color.magenta);
     }
 }
 
