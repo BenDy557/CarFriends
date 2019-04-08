@@ -8,6 +8,9 @@ public class Drive : MonoBehaviour
 	private VehicleSetUpData vehicleSetupData;*/
 
     [SerializeField]
+    private Vehicle m_owner;
+
+    [SerializeField]
     private Rigidbody m_rigidBody;
     public Rigidbody RigidBody {get{return m_rigidBody;}}
 
@@ -44,6 +47,9 @@ public class Drive : MonoBehaviour
 
     private void Update()
     {
+        if (m_owner == null || !m_owner.Initialised)
+            return;
+
         /*m_steeringInput = Input.GetAxis("Steering");
         m_accelerationInput = Input.GetAxis("Acceleration");
         m_deccelerationInput = Input.GetAxis("Decceleration");

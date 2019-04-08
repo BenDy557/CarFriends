@@ -15,6 +15,10 @@ public class Vehicle : MonoBehaviour, INetObject
     private VehicleSetUpData m_setupData;
 
     [SerializeField]
+    private VehicleController m_controller;
+    public VehicleController Controller { get { return m_controller; } }
+
+    [SerializeField]
     private NetObject m_netObject = null;
     public NetObject NetObject { get { return m_netObject; } }
 
@@ -33,10 +37,12 @@ public class Vehicle : MonoBehaviour, INetObject
     [SerializeField]
     private Chassis m_chassis;
 
-
     [SerializeField]
     private Drive m_engine;
     public Drive Engine { get { return m_engine; } }
+
+    private bool m_initialised = false;
+    public bool Initialised { get { return m_initialised; } }
 
     [SerializeField]
     private List<VehicleEffect> m_effects = new List<VehicleEffect>();
@@ -49,7 +55,7 @@ public class Vehicle : MonoBehaviour, INetObject
     private float m_draftingSpawnDistance = 2f;
 
     //Input
-    VehicleInput m_vehicleInput;
+    VehicleInput m_vehicleInput = new VehicleInput();
     public VehicleInput VehicleInput { get { return m_vehicleInput; } }
 
     private float m_accelerationInput;
@@ -88,16 +94,12 @@ public class Vehicle : MonoBehaviour, INetObject
 
     private void Awake()
     {
-        m_vehicleInput = new VehicleInput();
         SubscribeToEvents();
     }
 
     private void Start()
     {
-        m_engine.SetVehicleInput(m_vehicleInput);
-
-        if (m_setupData != null)
-            ApplySetupData(m_setupData);
+        Init(false, -1);
     }
 
     private void Update()
@@ -119,6 +121,20 @@ public class Vehicle : MonoBehaviour, INetObject
             }
         }
         
+    }
+
+    public void Init(bool isLocalPlayer, int netID)
+    {
+        if (m_initialised)
+            return;
+
+        NetObject.Init(false, netID);
+        m_controller.isPlayer = true;
+
+        m_engine.SetVehicleInput(m_vehicleInput);
+
+        if (m_setupData != null)
+            ApplySetupData(m_setupData);
     }
 
     [Button]
@@ -199,7 +215,6 @@ public class Vehicle : MonoBehaviour, INetObject
 
     private void SubscribeToEvents()
     {
-
         this.BindUntilDestroy<NetworkData>(EventTags.NetDataReceived_Locomotion, ReceiveLocomotionInfo);
     }
     #endregion

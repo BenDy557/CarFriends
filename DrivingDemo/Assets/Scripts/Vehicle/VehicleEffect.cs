@@ -69,10 +69,7 @@ public class VehicleEffect
 
     public void Update()
     {
-        Debug.Log("Timer " + m_timer);
         m_timer -= Time.deltaTime;
-
-        Debug.Log("Timer " + m_timer);
 
         if (m_timer <= 0)
         {

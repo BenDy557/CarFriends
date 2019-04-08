@@ -20,7 +20,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private GameObject m_cameraPrefab = null;
 
     [SerializeField]
-    private Vehicle m_localPlayer = null;
+    private HashSet<Vehicle> m_localPlayers = new HashSet<Vehicle>();
+    //TODO// should probably be a hashset or dictionary, only want unique players
     private List<NetworkPlayer> m_players = new List<NetworkPlayer>();
 
     private void OnEnable()
@@ -70,7 +71,11 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         m_gameStarted = true;
         //SpawnSelf
-        SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation,-1,true);
+
+        if (m_spawnPoint != null)
+            SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation,-1,true);
+        else
+            SpawnVehicle(true, Vector3.one * 10f, Quaternion.identity, -1, true);
     }
 
     //SERVER//////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +88,10 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         StartGame();
 
-        m_players.Add(new NetworkPlayer(m_localPlayer.NetID, "Server", null, m_localPlayer));
+        foreach (Vehicle localPlayer in m_localPlayers)
+        {
+            m_players.Add(new NetworkPlayer(localPlayer.NetID, "Server", null, localPlayer));
+        }
     }
 
     private void ServerUpdate()
@@ -98,7 +106,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         for (int clientIndex = 0; clientIndex < m_players.Count; clientIndex++)
         {
             //if player is server or there is no socket set up
-            if (m_players[clientIndex].ClientRemoteEndPoint == null || m_players[clientIndex].Vehicle == m_localPlayer)
+            if (m_players[clientIndex].ClientRemoteEndPoint == null || m_localPlayers.Contains(m_players[clientIndex].Vehicle))
                 continue;
 
             for (int vehicleIndexToSend = 0; vehicleIndexToSend < m_players.Count; vehicleIndexToSend++)
@@ -126,7 +134,10 @@ public class GameSessionManager : Singleton<GameSessionManager>
         string playerName = dataIn.Message;//TODO//message should contain actual player name, this message currently contains the ip addres, not the name
         //UdpClient socket = NetworkManager.Instance.AddClient(dataIn.Message);
         Debug.LogWarning("BadCode");
-        m_localPlayer.NetObject.Init(false);
+        foreach (Vehicle localPlayer in m_localPlayers)
+        {
+            localPlayer.NetObject.Init(false);
+        }
         Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,false);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
@@ -150,7 +161,10 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         StartGame();
 
-        m_players.Add(new NetworkPlayer(m_localPlayer.NetID, "Client", null, m_localPlayer));
+        foreach (Vehicle localPlayer in m_localPlayers)
+        {
+            m_players.Add(new NetworkPlayer(localPlayer.NetID, "Client", null, localPlayer));
+        }
     }
 
     private void ClientUpdate()
@@ -163,8 +177,14 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
         if (NetworkManager.Instance.IsServerSet)
         {
-            NetworkData netData = m_localPlayer.GetNetworkData();
-            NetworkManager.Instance.SendDataToServer(netData);
+            Debug.LogWarning("BadCode");
+            //network manager should probably concatinate all the data sent to it and then on late update send it all in one packet or something
+            //not sure what best practice is RESEARCH is needed
+            foreach (Vehicle localPlayer in m_localPlayers)
+            {
+                NetworkData netData = localPlayer.GetNetworkData();
+                NetworkManager.Instance.SendDataToServer(netData);
+            }
         }
     }
 
@@ -201,7 +221,12 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
 
         //InitialiseOwnNetObject
-        m_localPlayer.NetObject.Init(false, dataIn.NetworkObjectID);
+        foreach (Vehicle localPlayer in m_localPlayers)
+        {
+            Debug.LogWarning("BadCode");
+            Debug.LogError("Only one networkID to share with all each local player");
+            localPlayer.NetObject.Init(false, dataIn.NetworkObjectID);
+        }
 
         Unibus.Subscribe<NetworkData>(EventTags.NetDataReceived_Locomotion, OnLocomotionReceipt);
     }
@@ -240,19 +265,18 @@ public class GameSessionManager : Singleton<GameSessionManager>
     }*/
 
     //TODO//should use dedicated spawner
-    private Vehicle SpawnVehicle(bool isPlayer, Vector3 position, Quaternion rotation, int netID = -1, bool offlineMode = true)
+    private Vehicle SpawnVehicle(bool isLocalPlayer, Vector3 position, Quaternion rotation, int netID = -1, bool offlineMode = true)
     {
         Vehicle vehicle = Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
 
+        vehicle.Init(isLocalPlayer, netID);
+
         Debug.LogWarning("BadCode");
         //Shouldnt be accessing public variables like this
-        if (isPlayer)
+        if (isLocalPlayer)
         {
-            m_localPlayer = vehicle;
-            if (!offlineMode)
-                vehicle.NetObject.Init(false, netID);
-
-            vehicle.GetComponent<VehicleController>().isPlayer = true;
+            m_localPlayers.Add(vehicle);
+            
             UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
             localCamera.SetTarget(vehicle.transform);
         }
