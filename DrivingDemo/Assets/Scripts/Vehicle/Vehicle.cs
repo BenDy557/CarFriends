@@ -128,6 +128,8 @@ public class Vehicle : MonoBehaviour, INetObject
         if (m_initialised)
             return;
 
+        m_initialised = true;
+
         NetObject.Init(false, netID);
         m_controller.isPlayer = true;
 
@@ -135,6 +137,7 @@ public class Vehicle : MonoBehaviour, INetObject
 
         if (m_setupData != null)
             ApplySetupData(m_setupData);
+
     }
 
     [Button]

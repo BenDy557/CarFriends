@@ -10,6 +10,8 @@ public class VehicleController : MonoBehaviour
     [SerializeField]
     private Vehicle m_vehicle;
 
+    private Rewired.Player m_rewiredPlayer;
+
     [SerializeField]
     private VehicleInput m_vehicleInput;
     public VehicleInput VehicleInput
@@ -42,6 +44,9 @@ public class VehicleController : MonoBehaviour
 
     private void Awake()
     {
+        if (isPlayer)
+            m_rewiredPlayer = Rewired.ReInput.players.GetPlayer(0);
+
         SubscribeToEvents();
     }
 
@@ -55,11 +60,12 @@ public class VehicleController : MonoBehaviour
     {
         if (isPlayer)//TODO// remove
         {
-            m_vehicleInput.steering = Input.GetAxis("Steering");
-            m_vehicleInput.acceleration = (Input.GetAxis("Acceleration"));// + 1) * 0.5f;
+
+            m_vehicleInput.steering = m_rewiredPlayer.GetAxis("Steering");
+            m_vehicleInput.acceleration = (m_rewiredPlayer.GetAxis("Acceleration"));// + 1) * 0.5f;
             //m_vehicleInput.acceleration = (Input.GetAxis("Acceleration") + 1) * 0.5f;
-            m_vehicleInput.braking = (Input.GetAxis("Decceleration"));// + 1) * 0.5f;
-            m_vehicleInput.handBrake = Input.GetButton("Handbrake");
+            m_vehicleInput.braking = (m_rewiredPlayer.GetAxis("Decceleration"));// + 1) * 0.5f;
+            m_vehicleInput.handBrake = m_rewiredPlayer.GetButton("Handbrake");
         }
         else if (!m_netObject.IsNetworkControlled)
         {

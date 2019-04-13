@@ -24,6 +24,7 @@ public class Drive : MonoBehaviour
     public List<Axle> Axles {get{return m_axles;}}
 
     //Input
+    [SerializeField]
 	private VehicleInput m_vehicleInput = null;
     private bool m_flip = false;//TODO should be externalised in input class
 
@@ -55,8 +56,8 @@ public class Drive : MonoBehaviour
         m_deccelerationInput = Input.GetAxis("Decceleration");
         m_handbrake = Input.GetButton("Handbrake");*/
 
-        if (!m_flip)
-            m_flip = (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up,Vector3.down) < 45f)) || Input.GetButtonDown("Flip");
+        //if (!m_flip)
+        //    m_flip = (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up,Vector3.down) < 45f)) || Input.GetButtonDown("Flip");
 
 		//STEERING
 		m_front.Steer(m_vehicleInput.steering);
