@@ -26,7 +26,6 @@ public class Drive : MonoBehaviour
     //Input
     [SerializeField]
 	private VehicleInput m_vehicleInput = null;
-    private bool m_flip = false;//TODO should be externalised in input class
 
     public bool IsStopped { get { return m_rigidBody.velocity.sqrMagnitude < 1f; } }
     public bool IsMovingForward { get { return Vector3.Angle(transform.forward, m_rigidBody.velocity) < 90f; } }
@@ -56,9 +55,6 @@ public class Drive : MonoBehaviour
         m_deccelerationInput = Input.GetAxis("Decceleration");
         m_handbrake = Input.GetButton("Handbrake");*/
 
-        //if (!m_flip)
-        //    m_flip = (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up,Vector3.down) < 45f)) || Input.GetButtonDown("Flip");
-
 		//STEERING
 		m_front.Steer(m_vehicleInput.steering);
 		m_rear.Steer(m_vehicleInput.steering, true);
@@ -71,17 +67,6 @@ public class Drive : MonoBehaviour
 		m_front.Brake(m_vehicleInput.braking, m_vehicleInput.handBrake);
 		m_rear.Brake(m_vehicleInput.braking, m_vehicleInput.handBrake);				
 	}
-
-    private void FixedUpdate()
-    {
-        if (m_flip)
-        {
-            m_flip = false;
-            m_rigidBody.AddForce(Vector3.up * 7f, ForceMode.VelocityChange);
-            m_rigidBody.AddRelativeTorque(Vector3.forward * 2.5f, ForceMode.VelocityChange);
-        }
-    }
-
 
 	public void SetVehicleInput(VehicleInput vehicleInput)
 	{

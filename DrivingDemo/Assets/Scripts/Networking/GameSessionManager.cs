@@ -72,10 +72,43 @@ public class GameSessionManager : Singleton<GameSessionManager>
         m_gameStarted = true;
         //SpawnSelf
 
+        SpawnLocalPlayer();
+    }
+
+    [Button]
+    public void SpawnLocalPlayer()
+    {
         if (m_spawnPoint != null)
-            SpawnVehicle(true, m_spawnPoint.position, m_spawnPoint.rotation,-1,true);
+            SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, GetFreePlayerID(), -1, true);
         else
-            SpawnVehicle(true, Vector3.one * 10f, Quaternion.identity, -1, true);
+            SpawnVehicle(Vector3.one * 10f, Quaternion.identity, GetFreePlayerID(), -1, true);
+    }
+
+    private int GetFreePlayerID()
+    {
+        List<int> usedIds = new List<int>();
+        foreach (Vehicle vehicle in m_localPlayers)
+        {
+            usedIds.Add(vehicle.Controller.PlayerID);
+        }
+
+
+        int freeID = -1;
+        int possibleId = 0;
+        while (possibleId < 4)
+        {
+            if (usedIds.Contains(possibleId))
+            {
+                possibleId++;
+            }
+            else
+            {
+                freeID = possibleId;
+                break;
+            }
+        }
+
+        return freeID;
     }
 
     //SERVER//////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,7 +171,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         {
             localPlayer.NetObject.Init(false);
         }
-        Vehicle vehicle = SpawnVehicle(false, dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,false);//TODO//Should use dedicated spawner
+        Vehicle vehicle = SpawnVehicle(dataIn.LocomotionData.Position, dataIn.LocomotionData.Rotation,-1,-1,false);//TODO//Should use dedicated spawner
         //need to send a reply to new player, message should specify network id.
 
         NetworkPlayer networkPlayer = new NetworkPlayer(vehicle.NetID, playerName, NetworkManager.Instance.GetClientEndPoint(dataIn.Message), vehicle);
@@ -247,7 +280,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
         //never accept unauthorised locomotion data when acting as server
         if (NetworkManager.Instance.NetworkRole == NetworkRole.CLIENT)
         {
-            Vehicle newPlayer = SpawnVehicle(false, netData.LocomotionData.Position, netData.LocomotionData.Rotation, netData.NetworkObjectID, false);
+            Vehicle newPlayer = SpawnVehicle(netData.LocomotionData.Position, netData.LocomotionData.Rotation, -1, netData.NetworkObjectID, false);
             NetworkPlayer newNetworkPlayer = new NetworkPlayer(netData.NetworkObjectID, "NewPlayer", null, newPlayer);
             newPlayer.ReceiveNetworkData(netData);
             m_players.Add(newNetworkPlayer);
@@ -264,16 +297,16 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
     }*/
 
-    //TODO//should use dedicated spawner
-    private Vehicle SpawnVehicle(bool isLocalPlayer, Vector3 position, Quaternion rotation, int netID = -1, bool offlineMode = true)
+    //TODO//should use dedicated spawner//replace Instantiate with pooler
+    private Vehicle SpawnVehicle(Vector3 position, Quaternion rotation,int localControllerID = -1, int netID = -1, bool offlineMode = true)
     {
         Vehicle vehicle = Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
 
-        vehicle.Init(isLocalPlayer, netID);
+        vehicle.Init(localControllerID, netID);
 
         Debug.LogWarning("BadCode");
         //Shouldnt be accessing public variables like this
-        if (isLocalPlayer)
+        if (vehicle.Controller.IsPlayer)
         {
             m_localPlayers.Add(vehicle);
             

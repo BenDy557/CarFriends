@@ -22,7 +22,9 @@ public class VehicleController : MonoBehaviour
         }
     }
 
-    public bool isPlayer = true;
+    private int m_playerID = -1;
+    public int PlayerID { get { return m_playerID; } }
+    public bool IsPlayer { get { return m_playerID != -1; } }
 
     [SerializeField]
     private Transform m_target;
@@ -44,9 +46,6 @@ public class VehicleController : MonoBehaviour
 
     private void Awake()
     {
-        if (isPlayer)
-            m_rewiredPlayer = Rewired.ReInput.players.GetPlayer(0);
-
         SubscribeToEvents();
     }
 
@@ -55,12 +54,18 @@ public class VehicleController : MonoBehaviour
         m_vehicleInput = m_vehicle.VehicleInput;
     }
 
-    // Update is called once per frame
+    public void Init(int playerID)
+    {
+        m_playerID = playerID;
+
+        if (IsPlayer)
+            m_rewiredPlayer = Rewired.ReInput.players.GetPlayer(playerID);
+    }
+
     private void Update ()
     {
-        if (isPlayer)//TODO// remove
+        if (IsPlayer)
         {
-
             m_vehicleInput.steering = m_rewiredPlayer.GetAxis("Steering");
             m_vehicleInput.acceleration = (m_rewiredPlayer.GetAxis("Acceleration"));// + 1) * 0.5f;
             //m_vehicleInput.acceleration = (Input.GetAxis("Acceleration") + 1) * 0.5f;

@@ -99,7 +99,7 @@ public class Vehicle : MonoBehaviour, INetObject
 
     private void Start()
     {
-        Init(false, -1);
+        Init(-1, -1);
     }
 
     private void Update()
@@ -120,10 +120,13 @@ public class Vehicle : MonoBehaviour, INetObject
                 Destroy(m_prevDraftingObject.gameObject, 1.2f);
             }
         }
-        
+
+        if (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up, Vector3.down) < 45f))
+            Flip();
+
     }
 
-    public void Init(bool isLocalPlayer, int netID)
+    public void Init(int localControllerID, int netID)
     {
         if (m_initialised)
             return;
@@ -131,7 +134,7 @@ public class Vehicle : MonoBehaviour, INetObject
         m_initialised = true;
 
         NetObject.Init(false, netID);
-        m_controller.isPlayer = true;
+        m_controller.Init(localControllerID);//.isPlayer = true;
 
         m_engine.SetVehicleInput(m_vehicleInput);
 
@@ -176,9 +179,14 @@ public class Vehicle : MonoBehaviour, INetObject
             SendLocomotionInfo();
         }
     }*/
+    public void Flip()
+    {
+        m_rigidBody.AddForce(Vector3.up* 7f, ForceMode.VelocityChange);
+        m_rigidBody.AddRelativeTorque(Vector3.forward* 2.5f, ForceMode.VelocityChange);
+    }
 
-    #region Effects
-    public void ApplyEffect(VehicleEffect effectIn)
+#region Effects
+public void ApplyEffect(VehicleEffect effectIn)
     {
         if (m_effects.Count >= 1)
             return;
