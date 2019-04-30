@@ -312,6 +312,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
             
             UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
             localCamera.SetTarget(vehicle.transform);
+            Debug.LogWarning("BadCode");
+            //Shouldnt be using get component
+            SplitscreenManager.Instance.AddScreen(localCamera.GetComponentInChildren<Camera>());
         }
         else
         {
