@@ -299,9 +299,11 @@ public class WheelColliderSource : MonoBehaviour
         {
             wheelHit.Collider = m_raycastHit.collider;
             wheelHit.Point = m_raycastHit.point;
-            wheelHit.Normal = m_raycastHit.normal;
             wheelHit.ForwardDir = m_wheelParent.forward;
             wheelHit.SidewaysDir = m_wheelParent.right;
+            wheelHit.Normal = m_raycastHit.normal;
+            wheelHit.NormalRight = Vector3.Cross(m_raycastHit.normal,m_wheelParent.forward);
+            wheelHit.NormalForward = Vector3.Cross(m_raycastHit.normal, wheelHit.NormalRight);
             //wheelHit.Force = m_totalForce;
             //wheelHit.ForwardSlip = m_forwardSlip;
             wheelHit.SidewaysSlip = m_sidewaysSlip;
@@ -427,7 +429,8 @@ public class WheelColliderSource : MonoBehaviour
 
         //Lateral slip force
         float lateralFrictionValue = m_useBasicFriction ? m_simpleLateralFriction.Evaluate(m_sidewaysSlip) : m_sidewaysFriction.Evaluate(m_sidewaysSlip);
-        Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
+        //Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
+        Vector3 lateralSlipForce = -groundHit.NormalRight * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;vkhgjh
         //lateralSlipForce = Vector3.zero;
         //Debug.Log("wheel" + name);
         //Debug.Log("ForwardSlip " + m_forwardSlip);
