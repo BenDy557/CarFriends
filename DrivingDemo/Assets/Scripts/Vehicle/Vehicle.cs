@@ -124,6 +124,9 @@ public class Vehicle : MonoBehaviour, INetObject
         if (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up, Vector3.down) < 45f))
             Flip();
 
+
+        if (m_vehicleInput.jump && IsGrounded)
+            Jump();
     }
 
     public void Init(int localControllerID, int netID)
@@ -185,8 +188,13 @@ public class Vehicle : MonoBehaviour, INetObject
         m_rigidBody.AddRelativeTorque(Vector3.forward* 2.5f, ForceMode.VelocityChange);
     }
 
-#region Effects
-public void ApplyEffect(VehicleEffect effectIn)
+    public void Jump()
+    {
+        m_rigidBody.AddForce(transform.up * 7f, ForceMode.VelocityChange);
+    }
+
+    #region Effects
+    public void ApplyEffect(VehicleEffect effectIn)
     {
         if (m_effects.Count >= 1)
             return;
@@ -238,7 +246,7 @@ public class VehicleInput
     public float acceleration;
     public float braking;
     public bool handBrake;
-
+    public bool jump;
     //public bool flip;
 }
 

@@ -71,6 +71,7 @@ public class VehicleController : MonoBehaviour
             //m_vehicleInput.acceleration = (Input.GetAxis("Acceleration") + 1) * 0.5f;
             m_vehicleInput.braking = (m_rewiredPlayer.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = m_rewiredPlayer.GetButton("Handbrake");
+            m_vehicleInput.jump = m_rewiredPlayer.GetButtonDown("Jump");
         }
         else if (!m_netObject.IsNetworkControlled)
         {

@@ -68,6 +68,8 @@ public class WheelColliderSource : MonoBehaviour
     [SerializeField]
     private JointSpringSource m_suspensionSpring; //The parameters of wheel's suspension. The suspension attempts to reach a target position
 
+    private WheelHitSource m_wheelHit;
+
     //Debugging 
     private Color GizmoColor = Color.cyan;
 
@@ -270,26 +272,25 @@ public class WheelColliderSource : MonoBehaviour
 
         UpdateWheel();
 
+        GetGroundHit(out m_wheelHit);
+
         if (m_isGrounded)
         {
             CalculateSlips();
 
             CalculateForcesFromSlips();
 
-            WheelHitSource wheelHit;
-            GetGroundHit(out wheelHit);
-
             m_rigidbody.AddForceAtPosition(m_springForce, transform.position);
-            m_rigidbody.AddForceAtPosition(m_wheelForce, wheelHit.Point);
+            m_rigidbody.AddForceAtPosition(m_wheelForce, m_wheelHit.Point);
 
         }
 
-        if (m_suspensionCompression > 0.8f)
+        /*if (m_suspensionCompression > 0.8f)
         {
             WheelHitSource wheelHit;
             GetGroundHit(out wheelHit);
             //UnityEditor.EditorApplication.Beep();
-        }
+        }*/
     }
 
     public bool GetGroundHit(out WheelHitSource wheelHit)
@@ -419,8 +420,8 @@ public class WheelColliderSource : MonoBehaviour
 
     private void CalculateForcesFromSlips()
     {
-        WheelHitSource groundHit;
-        GetGroundHit(out groundHit);
+        //WheelHitSource groundHit;
+        //GetGroundHit(out groundHit);
 
         //Forward slip force
         /*float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
@@ -430,7 +431,7 @@ public class WheelColliderSource : MonoBehaviour
         //Lateral slip force
         float lateralFrictionValue = m_useBasicFriction ? m_simpleLateralFriction.Evaluate(m_sidewaysSlip) : m_sidewaysFriction.Evaluate(m_sidewaysSlip);
         //Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
-        Vector3 lateralSlipForce = -groundHit.NormalRight * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;vkhgjh
+        Vector3 lateralSlipForce = -m_wheelHit.NormalRight * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
         //lateralSlipForce = Vector3.zero;
         //Debug.Log("wheel" + name);
         //Debug.Log("ForwardSlip " + m_forwardSlip);
@@ -442,7 +443,7 @@ public class WheelColliderSource : MonoBehaviour
         float springMagnitude = (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
         float springDampingMagnitude = (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
 
-        Vector3 resultantSpringForce = groundHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
+        Vector3 resultantSpringForce = m_wheelHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
 
         Vector3 fakeForce = m_wheelParent.forward * m_wheelMotorTorque;
 
@@ -451,9 +452,9 @@ public class WheelColliderSource : MonoBehaviour
 
         //Debug.Log("MotorTorque " + m_wheelMotorTorque);
         //Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.005f), Color.red);
-        Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.005f), Color.green);
+        /*Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.005f), Color.green);
         Debug.DrawLine(transform.position, transform.position + (resultantSpringForce * 0.005f), Color.blue);
-        Debug.DrawLine(transform.position, transform.position + (m_springForce * 0.005f), Color.white);
+        Debug.DrawLine(transform.position, transform.position + (m_springForce * 0.005f), Color.white);*/
     }
 
     private bool UsingBasicFriction()
@@ -464,6 +465,19 @@ public class WheelColliderSource : MonoBehaviour
 #if UNITY_EDITOR
     public void OnDrawGizmosSelected()
     {
+        //Wheel contact point
+        if (m_isGrounded)
+        {
+            UnityEditor.Handles.color = Color.cyan;
+            UnityEditor.Handles.DrawWireDisc(m_wheelHit.Point, m_wheelHit.Normal, 0.5f);
+            Gizmos.color = Color.red.SetA(0.5f);
+            Gizmos.DrawLine(m_wheelHit.Point, m_wheelHit.Point + m_wheelHit.NormalRight);
+            Gizmos.color = Color.green.SetA(0.5f);
+            Gizmos.DrawLine(m_wheelHit.Point, m_wheelHit.Point + m_wheelHit.Normal);
+            Gizmos.color = Color.blue.SetA(0.5f);
+            Gizmos.DrawLine(m_wheelHit.Point, m_wheelHit.Point + m_wheelHit.NormalForward);
+        }
+
         Gizmos.color = GizmoColor;
 
         Transform parentTransform;

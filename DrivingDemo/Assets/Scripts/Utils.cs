@@ -12,6 +12,36 @@ public static class Utils
         return tempVector;
     }
 
+    #region Color
+    public static Color SetR(this Color color, float value)
+    {
+        Color tempColor = color;
+        tempColor.r = value;
+        return tempColor;
+    }
+
+    public static Color SetG(this Color color, float value)
+    {
+        Color tempColor = color;
+        tempColor.g = value;
+        return tempColor;
+    }
+
+    public static Color SetB(this Color color, float value)
+    {
+        Color tempColor = color;
+        tempColor.b = value;
+        return tempColor;
+    }
+
+    public static Color SetA(this Color color, float value)
+    {
+        Color tempColor = color;
+        tempColor.a = value;
+        return tempColor;
+    }
+    #endregion
+
     public static bool IsNullOrEmpty(this IList list)
     {
         return list == null || list.Count == 0;
