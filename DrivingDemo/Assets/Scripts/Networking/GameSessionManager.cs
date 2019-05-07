@@ -19,6 +19,8 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [SerializeField, Required]
     private GameObject m_cameraPrefab = null;
 
+    private int m_maxLocalPlayerCount = 4;
+
     [SerializeField]
     private HashSet<Vehicle> m_localPlayers = new HashSet<Vehicle>();
     //TODO// should probably be a hashset or dictionary, only want unique players
@@ -32,6 +34,10 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
     private void Update()
     {
+        CheckForLocalJoinRequests();
+
+
+
         //receive updates from all clients
         switch (NetworkManager.Instance.NetworkRole)
         {
@@ -44,6 +50,56 @@ public class GameSessionManager : Singleton<GameSessionManager>
                 ClientUpdate();
                 break;
         }
+    }
+
+    private void CheckForLocalJoinRequests()
+    {
+        foreach (Rewired.Joystick joystick in Rewired.ReInput.controllers.Joysticks)
+        {
+            if (joystick.GetAnyButtonDown())
+            {
+                int freeID;
+                if (!GetFreePlayerID(out freeID))
+                    continue;
+                
+
+                foreach (Rewired.Player player in Rewired.ReInput.players.GetPlayers(false))
+                {
+                    if (player.isPlaying || player.controllers.ContainsController(joystick))
+                        continue;
+                    else
+                    {
+                        player.controllers.AddController(joystick, true);
+                        player.isPlaying = true;
+                        SpawnLocalPlayer();
+                        break;
+                    }
+                }
+                
+                //Rewired.Player tempPlayer = Rewired.ReInput.players.GetPlayer(freeID);
+
+                //if (tempPlayer.isPlaying)
+                    //return;
+
+
+                //tempPlayer.controllers.AddController(joystick, true);
+
+                //SpawnLocalPlayer();
+                //tempPlayer.isPlaying = true;
+            }
+        }
+            
+        /*for (int playerIndex = 0; playerIndex < m_maxLocalPlayerCount; playerIndex++)
+        {
+            Rewired.Player tempPlayer = Rewired.ReInput.players.GetPlayer(playerIndex);
+            if (tempPlayer.GetButtonDown("JoinRequest") && !tempPlayer.isPlaying)
+            {
+                SpawnLocalPlayer();
+                tempPlayer.isPlaying = true;
+                
+            }
+                
+        }*/
     }
 
     private void NetworkMessageReceived(NetworkData dataIn)
@@ -78,13 +134,16 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [Button]
     public void SpawnLocalPlayer()
     {
+        int freeID;
+        GetFreePlayerID(out freeID);
+
         if (m_spawnPoint != null)
-            SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, GetFreePlayerID(), -1, true);
+            SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, freeID, -1, true);
         else
-            SpawnVehicle(Vector3.one * 10f, Quaternion.identity, GetFreePlayerID(), -1, true);
+            SpawnVehicle(Vector3.one * 10f, Quaternion.identity, freeID, -1, true);
     }
 
-    private int GetFreePlayerID()
+    private bool GetFreePlayerID(out int freeID)
     {
         List<int> usedIds = new List<int>();
         foreach (Vehicle vehicle in m_localPlayers)
@@ -93,9 +152,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
         }
 
 
-        int freeID = -1;
+        freeID = -1;
         int possibleId = 0;
-        while (possibleId < 4)
+        while (possibleId < m_maxLocalPlayerCount)
         {
             if (usedIds.Contains(possibleId))
             {
@@ -108,7 +167,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
             }
         }
 
-        return freeID;
+        return (freeID != -1);
     }
 
     //SERVER//////////////////////////////////////////////////////////////////////////////////////////////

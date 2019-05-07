@@ -64,6 +64,21 @@ public class Vehicle : MonoBehaviour, INetObject
     //private bool m_flip = false;
     //private bool m_handbrake = false;
 
+    public bool IsGrounded
+    {
+        get
+        {
+            foreach (Wheel wheel in Wheels)
+            {
+                if (wheel.Collider.IsGrounded)
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+
     [ReadOnly]    
     private float m_maxEngineTorque;
     public float MaxEngineTorque
