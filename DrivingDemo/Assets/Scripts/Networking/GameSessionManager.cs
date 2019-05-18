@@ -54,19 +54,42 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
     private void CheckForLocalJoinRequests()
     {
+        int freeID;
+        if (!GetFreePlayerID(out freeID))
+            return;
+
         foreach (Rewired.Joystick joystick in Rewired.ReInput.controllers.Joysticks)
         {
             if (joystick.GetAnyButtonDown())
             {
-                int freeID;
-                if (!GetFreePlayerID(out freeID))
-                    continue;
-                
+                bool controllerInUse = false;
 
                 foreach (Rewired.Player player in Rewired.ReInput.players.GetPlayers(false))
                 {
-                    if (player.isPlaying || player.controllers.ContainsController(joystick))
-                        continue;
+                    if (player.controllers.ContainsController(joystick))
+                    {
+                        controllerInUse = true;
+                        break;
+                    }
+                }
+
+                if (controllerInUse)
+                    continue;
+
+
+                Rewired.Player tempPlayer = Rewired.ReInput.players.GetPlayer(freeID);
+
+                if (tempPlayer.isPlaying)
+                    continue;
+
+                tempPlayer.controllers.AddController(joystick, true);
+                tempPlayer.isPlaying = true;
+                SpawnLocalPlayer(freeID);
+
+                /*foreach (Rewired.Player player in Rewired.ReInput.players.GetPlayers(false))
+                {
+                    if (player.controllers.ContainsController(joystick))
+                        break;
                     else
                     {
                         player.controllers.AddController(joystick, true);
@@ -74,32 +97,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
                         SpawnLocalPlayer();
                         break;
                     }
-                }
-                
-                //Rewired.Player tempPlayer = Rewired.ReInput.players.GetPlayer(freeID);
-
-                //if (tempPlayer.isPlaying)
-                    //return;
-
-
-                //tempPlayer.controllers.AddController(joystick, true);
-
-                //SpawnLocalPlayer();
-                //tempPlayer.isPlaying = true;
+                }*/
             }
         }
-            
-        /*for (int playerIndex = 0; playerIndex < m_maxLocalPlayerCount; playerIndex++)
-        {
-            Rewired.Player tempPlayer = Rewired.ReInput.players.GetPlayer(playerIndex);
-            if (tempPlayer.GetButtonDown("JoinRequest") && !tempPlayer.isPlaying)
-            {
-                SpawnLocalPlayer();
-                tempPlayer.isPlaying = true;
-                
-            }
-                
-        }*/
     }
 
     private void NetworkMessageReceived(NetworkData dataIn)
@@ -128,19 +128,19 @@ public class GameSessionManager : Singleton<GameSessionManager>
         m_gameStarted = true;
         //SpawnSelf
 
-        SpawnLocalPlayer();
-    }
-
-    [Button]
-    public void SpawnLocalPlayer()
-    {
         int freeID;
         GetFreePlayerID(out freeID);
 
+        SpawnLocalPlayer(freeID);
+    }
+
+    [Button]
+    public void SpawnLocalPlayer(int controllerID = -1)
+    {
         if (m_spawnPoint != null)
-            SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, freeID, -1, true);
+            SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, controllerID, -1, true);
         else
-            SpawnVehicle(Vector3.one * 10f, Quaternion.identity, freeID, -1, true);
+            SpawnVehicle(Vector3.one * 10f, Quaternion.identity, controllerID, -1, true);
     }
 
     private bool GetFreePlayerID(out int freeID)
