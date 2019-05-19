@@ -135,7 +135,12 @@ public class GameSessionManager : Singleton<GameSessionManager>
     }
 
     [Button]
-    public void SpawnLocalPlayer(int controllerID = -1)
+    public void SpawnLocalPlayer()
+    {
+        SpawnLocalPlayer(-1);
+    }
+
+    public void SpawnLocalPlayer(int controllerID)
     {
         if (m_spawnPoint != null)
             SpawnVehicle(m_spawnPoint.position, m_spawnPoint.rotation, controllerID, -1, true);

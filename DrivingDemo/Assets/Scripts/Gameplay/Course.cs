@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NaughtyAttributes;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,7 +12,7 @@ using UnityEditor;
 /// </summary>
 public class Course : MonoBehaviour
 {
-    [SerializeField]
+    [SerializeField,ReorderableList]
     private List<Checkpoint> m_checkpoints;
     public IList<Checkpoint> Checkpoints { get { return m_checkpoints.AsReadOnly(); } }
 
@@ -46,12 +47,30 @@ public class Course : MonoBehaviour
         return m_checkpoints[index];
     }
 
+    public void AddCheckpoint(Checkpoint checkpoint)
+    {
+        m_checkpoints.Add(checkpoint);
+    }
+
 #if UNITY_EDITOR
-    [NaughtyAttributes.Button]
+    [Button]
     private void GetCheckpoints()
     {
         m_checkpoints.Clear();
         m_checkpoints.AddRange(GetComponentsInChildren<Checkpoint>());
+    }
+
+    [Button]
+    private void AddCheckpoint()
+    {
+        Checkpoint tempCheckPoint = (PrefabUtility.InstantiatePrefab(Resources.Load(PrefabLibrary.CheckpointDefault), this.transform) as GameObject).GetComponent<Checkpoint>();
+        AddCheckpoint(tempCheckPoint);
+
+        if (m_checkpoints.IsNullOrEmpty() || m_checkpoints[0] == null)
+            tempCheckPoint.transform.localPosition = Vector3.zero;
+        else
+            tempCheckPoint.transform.localPosition = m_checkpoints[0].transform.localPosition + Vector3.right;
+
     }
 
     private void OnDrawGizmosSelected()

@@ -24,7 +24,7 @@ public class Race
 
     private Dictionary<Vehicle, RaceParticipentStats> m_participants = null;
 
-    public Race(List<Vehicle> participants, Course course, int laps)
+    public Race(HashSet<Vehicle> participants, Course course, int laps)
     {
         m_participants = new Dictionary<Vehicle, RaceParticipentStats>();
 
@@ -72,7 +72,7 @@ public class Race
         Checkpoint checkpointIn = checkpointVehiclePairIn.Checkpoint;
         Vehicle vehicleIn = checkpointVehiclePairIn.Vehicle;
 
-        if (!m_course.Checkpoints.Contains(checkpointIn) || !m_participants.ContainsKey(vehicleIn))
+        if (!m_participants.ContainsKey(vehicleIn) || !m_course.Checkpoints.Contains(checkpointIn))
             return;
 
         RaceParticipentStats tempStats = m_participants[vehicleIn];

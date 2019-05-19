@@ -72,6 +72,13 @@ public class VehicleController : MonoBehaviour
             m_vehicleInput.braking = (m_rewiredPlayer.GetAxis("Decceleration"));// + 1) * 0.5f;
             m_vehicleInput.handBrake = m_rewiredPlayer.GetButton("Handbrake");
             m_vehicleInput.jump = m_rewiredPlayer.GetButtonDown("Jump");
+
+
+            if (m_rewiredPlayer.GetButtonDown("StartActivity"))
+            {
+                Debug.LogWarning("BadCode");
+                Unibus.Dispatch<Vehicle>(EventTags.Activity_RequestStart, m_vehicle);
+            }
         }
         else if (!m_netObject.IsNetworkControlled)
         {

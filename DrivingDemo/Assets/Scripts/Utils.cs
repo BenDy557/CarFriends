@@ -73,3 +73,25 @@ public static class Utils
         public U Second { get; set; }
     }
 }
+
+public static class UtilsGameplay
+{
+    //used in collision detection to check if collider belongs to a vehicle and also returns any vehicle found
+    public static bool IsVehicle(Collider collider, out Vehicle vehicle)
+    {
+        vehicle = null;
+
+        if (collider.tag != "Hull")
+            return false;
+
+        Hull tempHull = collider.GetComponent<Hull>();
+        if (tempHull == null)
+        {
+            Debug.LogError("hull not attached to tagged hull" + collider.name, collider.gameObject);
+            return false;
+        }
+
+        vehicle = tempHull.Owner;
+        return true;
+    }
+}

@@ -16,6 +16,10 @@ public static class EventTags
     public static string OnClientStart = "OnClientStart";
     #endregion
 
+    #region ActivityEvents
+    public static string Activity_RequestStart = "Activity_RequestStart";
+    #endregion
+
     #region RaceEvents
     public static string CheckpointReached = "CheckpointReached";
     #endregion
