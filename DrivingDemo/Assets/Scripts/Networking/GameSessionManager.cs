@@ -18,6 +18,9 @@ public class GameSessionManager : Singleton<GameSessionManager>
     private GameObject m_vehiclePrefab = null;
     [SerializeField, Required]
     private GameObject m_cameraPrefab = null;
+    [SerializeField, Required]
+    private GameObject m_canvasPrefab = null;
+
 
     private int m_maxLocalPlayerCount = 4;
 
@@ -374,11 +377,14 @@ public class GameSessionManager : Singleton<GameSessionManager>
         {
             m_localPlayers.Add(vehicle);
             
-            UnityStandardAssets.Cameras.AutoCam localCamera = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
-            localCamera.SetTarget(vehicle.transform);
-            Debug.LogWarning("BadCode");
+            UnityStandardAssets.Cameras.AutoCam localCameraController = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
+            localCameraController.SetTarget(vehicle.transform);
+            Camera localCamera = localCameraController.GetComponentInChildren<Camera>();
             //Shouldnt be using get component
-            SplitscreenManager.Instance.AddScreen(localCamera.GetComponentInChildren<Camera>());
+            SplitscreenManager.Instance.AddScreen(localCamera);
+
+            UIVehicleHUD tempHUD = Instantiate(m_canvasPrefab).GetComponent<UIVehicleHUD>();
+            tempHUD.Initialise(vehicle, localCamera);
         }
         else
         {
