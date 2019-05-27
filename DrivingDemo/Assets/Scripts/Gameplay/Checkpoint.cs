@@ -9,29 +9,11 @@ public class Checkpoint : TriggerZone
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.tag != "Hull")
+        Vehicle tempVehicle = null;
+        if (!UtilsGameplay.IsVehicle(collider, out tempVehicle))
             return;
 
-        Hull tempHull = collider.GetComponent<Hull>();
-        if (tempHull == null)
-        {
-            Debug.LogError("hull not attached to tagged hull" + collider.name, collider.gameObject);
-            return;
-        }
-
-        Unibus.Dispatch<CheckpointVehiclePair>(EventTags.CheckpointReached, new CheckpointVehiclePair(this, tempHull.Owner));
-    }
-
-    public struct CheckpointVehiclePair
-    {
-        public Checkpoint Checkpoint;
-        public Vehicle Vehicle;
-
-        public CheckpointVehiclePair(Checkpoint checkpointIn, Vehicle vehicleIn)
-        {
-            Checkpoint = checkpointIn;
-            Vehicle = vehicleIn;
-        }
+        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.Trigger_CheckpointReached, new TriggerZoneVehiclePair(this, tempVehicle));
     }
 
 #if UNITY_EDITOR

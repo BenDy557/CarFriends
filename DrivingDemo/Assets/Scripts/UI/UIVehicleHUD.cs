@@ -5,36 +5,53 @@ using TMPro;
 
 public class UIVehicleHUD : MonoBehaviour
 {
-    private enum Units
-    {
-        MS,
-        KPH,
-        MPH,
-    }
-
     //[SerializeField]
     private Vehicle m_vehicle;//TODO// should this be some sort of player class as opposed to referencing a vehicle? it technically is associated with the camera more than the vehicle
     private Camera m_camera;
+
+    private Activity m_currentActivity;
 
     [SerializeField]
     private Canvas m_canvas;
 
 
-    [SerializeField]
+
+
+    
+    [Header("Vehicle"),SerializeField]
     private TextMeshProUGUI m_speedometer;
     [SerializeField]
-    private Units m_units = Units.MS;
+    private Utils.Units m_units = Utils.Units.MS;
+
+    [Header("Activity"), SerializeField]
+    private TextMeshProUGUI m_activityProgress;
+    private TextMeshProUGUI m_activityPosition;
+
+
 
     private void Start()
     {
         Debug.LogWarning("BAD CODE");
         m_canvas.worldCamera = m_camera;
+
+        this.BindUntilDestroy<Activity>(EventTags.Activity_OnStart, OnActivityStart);
     }
 
     private void Update()
     {
-        float speed = UnitConverter(Units.MS, m_vehicle.Engine.Speed, m_units);
+        float speed = Utils.UnitConverter(Utils.Units.MS, m_vehicle.Engine.Speed, m_units);
         m_speedometer.text = Mathf.RoundToInt(speed).ToString() + m_units.ToString();
+
+
+        if (m_currentActivity != null)
+        {
+            Race currentRace = m_currentActivity as Race;
+            if (currentRace != null)
+            {
+                RaceParticipentStats stats = (currentRace.GetParticipantStat(m_vehicle) as RaceParticipentStats);
+                m_activityProgress.text = stats.lapsCompleted.ToString() + "/" + currentRace.Laps.ToString();
+            }
+        }
     }
 
     public void Initialise(Vehicle vehichle, Camera camera)
@@ -45,52 +62,17 @@ public class UIVehicleHUD : MonoBehaviour
         m_camera = camera;
     }
 
-
-    private float UnitConverter(Units unitIn, float value, Units unitOut)
+    private void OnActivityStart(Activity activity)
     {
-        if (unitIn == unitOut)
-            return value;
-
-        switch (unitIn)
+        if (activity.ContainsParticipant(m_vehicle))
         {
-            case Units.MS:
-                switch (unitOut)
-                {
-                    case Units.KPH:
-                        return (value * 60f * 60f) *0.001f;
-                        break;
-                    case Units.MPH:
-                        throw new System.NotImplementedException();
-                        break;
-                }
-                break;
-            
-            case Units.KPH:
-                switch (unitOut)
-                {
-                    case Units.MS:
-                        throw new System.NotImplementedException();
-                        break;
-                    case Units.MPH:
-                        throw new System.NotImplementedException();
-                        break;
-                }
-                break;
-            
-            case Units.MPH:
-                switch (unitOut)
-                {
-                    case Units.MS:
-                        throw new System.NotImplementedException();
-                        break;
-                    case Units.KPH:
-                        throw new System.NotImplementedException();
-                        break;
-                }
-                break;
+            m_currentActivity = activity;
+
+            /*Race currentRace = m_currentActivity as Race;
+            if (currentRace != null)
+            {
+                this.BindUntilDestroy<Activity>(EventTags.Trigger_CheckpointReached, OnCheckpointReached);
+            }*/
         }
-
-
-        return 0f;
     }
 }

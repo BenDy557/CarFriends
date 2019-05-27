@@ -29,7 +29,6 @@ public class EventStartZone : TriggerZone
         this.BindUntilDisable<Vehicle>(EventTags.Activity_RequestStart, RequestStart);
     }
 
-    [NaughtyAttributes.Button]
     private void RequestStart(Vehicle vehicle)
     {
         if (!m_entrants.Contains(vehicle))
@@ -62,6 +61,7 @@ public class EventStartZone : TriggerZone
 
         if (!m_event.InProgress)
             m_event.Start();*/
+        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.Trigger_ActivityStartZone, new TriggerZoneVehiclePair(this, tempVehicle));
     }
 
     private void OnTriggerExit(Collider other)

@@ -72,6 +72,62 @@ public static class Utils
         public T First { get; set; }
         public U Second { get; set; }
     }
+
+    public enum Units
+    {
+        MS,
+        KPH,
+        MPH,
+    }
+
+    public static float UnitConverter(Units unitIn, float value, Units unitOut)
+    {
+        if (unitIn == unitOut)
+            return value;
+
+        switch (unitIn)
+        {
+            case Units.MS:
+                switch (unitOut)
+                {
+                    case Units.KPH:
+                        return (value * 60f * 60f) * 0.001f;
+                        break;
+                    case Units.MPH:
+                        throw new System.NotImplementedException();
+                        break;
+                }
+                break;
+
+            case Units.KPH:
+                switch (unitOut)
+                {
+                    case Units.MS:
+                        throw new System.NotImplementedException();
+                        break;
+                    case Units.MPH:
+                        throw new System.NotImplementedException();
+                        break;
+                }
+                break;
+
+            case Units.MPH:
+                switch (unitOut)
+                {
+                    case Units.MS:
+                        throw new System.NotImplementedException();
+                        break;
+                    case Units.KPH:
+                        throw new System.NotImplementedException();
+                        break;
+                }
+                break;
+        }
+
+
+        return 0f;
+    }
+
 }
 
 public static class UtilsGameplay

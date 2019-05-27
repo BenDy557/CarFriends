@@ -16,11 +16,19 @@ public static class EventTags
     public static string OnClientStart = "OnClientStart";
     #endregion
 
+    #region TriggerEvents
+    public static string Trigger_ActivityStartZone = "Trigger_ActivityStartZone";
+    public static string Trigger_CheckpointReached = "Trigger_CheckpointReached";
+    #endregion
+
     #region ActivityEvents
     public static string Activity_RequestStart = "Activity_RequestStart";
+
+    public static string Activity_OnStart = "Activity_OnStart";
+    public static string Activity_OnFinish = "Activity_OnFinish";
     #endregion
 
     #region RaceEvents
-    public static string CheckpointReached = "CheckpointReached";
+    public static string ActivityRace_OnFinish = "ActivityRace_OnFinish";
     #endregion
 }

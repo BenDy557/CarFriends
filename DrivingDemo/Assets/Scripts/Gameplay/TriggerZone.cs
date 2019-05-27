@@ -29,6 +29,8 @@ public abstract class TriggerZone : MonoBehaviour
         m_collider.center = Vector3.up * ((-m_underHeight) + (m_height * 0.5f));
     }
 
+    
+
 #if UNITY_EDITOR
     [NaughtyAttributes.Button]
     protected void SnapToFloor()
@@ -82,4 +84,16 @@ public abstract class TriggerZone : MonoBehaviour
         //Handles.DrawWireDisc(transform.position - (Vector3.up * m_underHeight), Vector3.up, m_radius);
     }
 #endif
+}
+
+public struct TriggerZoneVehiclePair
+{
+    public TriggerZone TriggerZone;
+    public Vehicle Vehicle;
+
+    public TriggerZoneVehiclePair(TriggerZone checkpointIn, Vehicle vehicleIn)
+    {
+        TriggerZone = checkpointIn;
+        Vehicle = vehicleIn;
+    }
 }

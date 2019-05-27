@@ -9,73 +9,43 @@ using UnibusEvent;
 /// how many laps are left etc
 /// the race is a thing that can be won and lost, it's not a physical thing
 /// </summary>
-public class Race
+public class Race : Activity
 {
     private Course m_course = null;
     private int m_laps = 0;
-    private bool m_inProgress = false;
-    public bool InProgress
+    public int Laps { get { return m_laps; } }
+
+    public Race(HashSet<Vehicle> participants, Course course, int laps) : base(participants)
     {
-        get
-        {
-            return m_inProgress;
-        }
-    }
-
-    private Dictionary<Vehicle, RaceParticipentStats> m_participants = null;
-
-    public Race(HashSet<Vehicle> participants, Course course, int laps)
-    {
-        m_participants = new Dictionary<Vehicle, RaceParticipentStats>();
-
         foreach (Vehicle vehicle in participants)
         {
-            m_participants.Add(vehicle, new RaceParticipentStats(vehicle,course.GetFirstCheckpoint()));
+            m_participants.Add(vehicle, new RaceParticipentStats(this, vehicle, course.GetFirstCheckpoint()));
         }
 
         m_course = course;
         m_laps = laps;
 
-        Unibus.Subscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+        Unibus.Subscribe<TriggerZoneVehiclePair>(EventTags.Trigger_CheckpointReached, OnCheckpointArrival);
     }
 
     ~Race()
     {
-        Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+        Unibus.Unsubscribe<TriggerZoneVehiclePair>(EventTags.Trigger_CheckpointReached, OnCheckpointArrival);
     }
 
-    public void Start()
-    {
-        if (m_inProgress)
-            return;
 
-        m_inProgress = true;
-
-
-        Debug.Log("RaceStarted");
-    }
-
-    public void Stop()
+    private void OnCheckpointArrival(TriggerZoneVehiclePair triggerZoneVehiclePairIn)
     {
         if (!m_inProgress)
             return;
 
-        m_inProgress = false;
-        //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
-    }
-
-    private void OnCheckpointArrival(Checkpoint.CheckpointVehiclePair checkpointVehiclePairIn)
-    {
-        if (!m_inProgress)
-            return;
-
-        Checkpoint checkpointIn = checkpointVehiclePairIn.Checkpoint;
-        Vehicle vehicleIn = checkpointVehiclePairIn.Vehicle;
+        Checkpoint checkpointIn = triggerZoneVehiclePairIn.TriggerZone as Checkpoint;
+        Vehicle vehicleIn = triggerZoneVehiclePairIn.Vehicle;
 
         if (!m_participants.ContainsKey(vehicleIn) || !m_course.Checkpoints.Contains(checkpointIn))
             return;
 
-        RaceParticipentStats tempStats = m_participants[vehicleIn];
+        RaceParticipentStats tempStats = m_participants[vehicleIn] as RaceParticipentStats;
 
         //if the checkpoint being hit is the next in line for the current vehicle
         if (checkpointIn == m_course.GetNextCheckpoint(tempStats.currentCheckpoint))
@@ -110,17 +80,15 @@ public class Race
     }
 }
 
-public class RaceParticipentStats
+public class RaceParticipentStats : ActivityParticipentStats
 {
-    public Vehicle m_vehicle;
     public Checkpoint currentCheckpoint;
     public int lapsCompleted;
 
     public bool finishedRace;
 
-    public RaceParticipentStats(Vehicle vehicle, Checkpoint checkpoint)
+    public RaceParticipentStats(Activity activity, Vehicle vehicle, Checkpoint checkpoint) : base(activity, vehicle)
     {
-        m_vehicle = vehicle;
         currentCheckpoint = checkpoint;
         lapsCompleted = 0;
     }
