@@ -6,20 +6,38 @@ using UnibusEvent;
 public abstract class Activity
 {
     protected Dictionary<Vehicle, ActivityParticipentStats> m_participants;
-
-
+    protected List<ActivityParticipentStats> m_particpantStats;
 
     protected bool m_inProgress = false;
     public bool InProgress { get { return m_inProgress; } }
 
-    public virtual void Start()
+    //creates the data structures but the inherited class chooses what to put in them
+    public Activity()
     {
+        m_participants = new Dictionary<Vehicle, ActivityParticipentStats>();
+        m_particpantStats = new List<ActivityParticipentStats>();
+    }
+
+    ~Activity()
+    {
+        //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+    }
+
+    protected virtual bool Start(HashSet<Vehicle> participants)
+    {
+        if (participants == null)
+            return false;
+
+        AddParticipants(participants);
+
         if (m_inProgress)
-            return;
+            return false;
 
         m_inProgress = true;
 
         Unibus.Dispatch<Activity>(EventTags.Activity_OnStart, this);
+
+        return true;
     }
 
     public virtual void Stop()
@@ -27,30 +45,29 @@ public abstract class Activity
         if (!m_inProgress)
             return;
 
+        m_participants.Clear();
+        m_particpantStats.Clear();
+
         m_inProgress = false;
         //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
         Unibus.Dispatch<Activity>(EventTags.Activity_OnFinish, this);
     }
 
-    public Activity(HashSet<Vehicle> participants)
+    /// <summary>
+    /// Add a participant to the activity
+    /// If you want to make this function public you should override it in a derived class
+    /// This is to to stop adding participants to an activity that you do not know the type of
+    /// </summary>
+    /// <param name="vehicle"></param>
+    /// <param name="activityStats"></param>
+    protected virtual void AddParticipant(Vehicle vehicle, ActivityParticipentStats activityStats)
     {
-        m_participants = new Dictionary<Vehicle, ActivityParticipentStats>();
+        m_participants.Add(vehicle, activityStats);
+        m_particpantStats.Add(activityStats);
     }
-    //{
-    //    m_participants = new Dictionary<Vehicle, ActivityParticipentStats>();
 
-    //    foreach (Vehicle vehicle in participants)
-    //    {
-    //        m_participants.Add(vehicle, new ActivityParticipentStats(vehicle));
-    //    }
-
-    //    //Unibus.Subscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
-    //}
-
-    ~Activity()
-    {
-        //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
-    }
+    //
+    public abstract void AddParticipants(ICollection<Vehicle> vehicle);
 
     public bool ContainsParticipant(Vehicle vehicle)
     {
@@ -64,17 +81,23 @@ public abstract class Activity
 
         return null;
     }
+
+    public bool CanJoin(Vehicle vehicle)
+    {
+        return !m_inProgress;
+    }
 }
 
 public class ActivityParticipentStats
 {
-    public Activity m_activity;
-    public Vehicle m_vehicle;
+    //private Activity m_activity;
+    public Activity Activity { get; private set; }
+    public Vehicle Vehicle { get; private set; }
     public bool finishedActivity;
 
     public ActivityParticipentStats(Activity activity, Vehicle vehicle)
     {
-        m_activity = activity;
-        m_vehicle = vehicle;
+        Activity = activity;
+        Vehicle = vehicle;
     }
 }

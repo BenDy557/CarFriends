@@ -17,8 +17,10 @@ public static class EventTags
     #endregion
 
     #region TriggerEvents
-    public static string Trigger_ActivityStartZone = "Trigger_ActivityStartZone";
-    public static string Trigger_CheckpointReached = "Trigger_CheckpointReached";
+    public static string TriggerEn_ActivityStartZone = "TriggerEn_ActivityStartZone";
+    public static string TriggerEx_ActivityStartZone = "TriggerEx_ActivityStartZone";
+    public static string TriggerEn_CheckpointReached = "TriggerEn_CheckpointReached";
+    
     #endregion
 
     #region ActivityEvents

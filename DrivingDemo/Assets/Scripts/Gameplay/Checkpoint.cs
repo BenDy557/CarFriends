@@ -13,7 +13,7 @@ public class Checkpoint : TriggerZone
         if (!UtilsGameplay.IsVehicle(collider, out tempVehicle))
             return;
 
-        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.Trigger_CheckpointReached, new TriggerZoneVehiclePair(this, tempVehicle));
+        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.TriggerEn_CheckpointReached, new TriggerZoneVehiclePair(this, tempVehicle));
     }
 
 #if UNITY_EDITOR

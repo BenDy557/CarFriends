@@ -10,18 +10,18 @@ public class EventStartZone : TriggerZone
     private int m_laps = 2;
 
     private Race m_activity;
-
+    public Race Activity { get { return m_activity; } }
 
     private HashSet<Vehicle> m_entrants = new HashSet<Vehicle>();
-    private HashSet<Vehicle> m_participants = new HashSet<Vehicle>();
 
-    private new void Awake()
+    protected override void Awake()
     {
         base.Awake();
 
         if (m_courseToRace == null)
             Debug.LogError("no course added");
 
+        m_activity = new Race(m_courseToRace);
     }
 
     private void OnEnable()
@@ -36,13 +36,7 @@ public class EventStartZone : TriggerZone
 
         if (m_activity == null || !m_activity.InProgress)
         {
-            m_participants.Clear();
-            foreach (Vehicle entrant in m_entrants)
-            {
-                m_participants.Add(entrant);
-            }
-            m_activity = new Race(m_participants, m_courseToRace, m_laps);
-            m_activity.Start();
+            m_activity.Start(m_entrants,m_laps);
         }
     }
 
@@ -52,16 +46,9 @@ public class EventStartZone : TriggerZone
         if (!UtilsGameplay.IsVehicle(other, out tempVehicle))
             return;
 
-        Debug.Log("VEHICLE" + tempVehicle,tempVehicle);
         m_entrants.Add(tempVehicle);
 
-
-        /*if (m_event == null)
-            m_event = new Race(tempParticipants, m_courseToRace, m_laps);
-
-        if (!m_event.InProgress)
-            m_event.Start();*/
-        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.Trigger_ActivityStartZone, new TriggerZoneVehiclePair(this, tempVehicle));
+        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.TriggerEn_ActivityStartZone, new TriggerZoneVehiclePair(this, tempVehicle));
     }
 
     private void OnTriggerExit(Collider other)
@@ -71,8 +58,9 @@ public class EventStartZone : TriggerZone
             return;
 
         m_entrants.Remove(tempVehicle);
-    }
 
+        Unibus.Dispatch<TriggerZoneVehiclePair>(EventTags.TriggerEx_ActivityStartZone, new TriggerZoneVehiclePair(this, tempVehicle));
+    }
 
 #if UNITY_EDITOR
     private void OnValidate()
