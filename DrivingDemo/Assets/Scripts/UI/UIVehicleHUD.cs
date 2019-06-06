@@ -34,7 +34,7 @@ public class UIVehicleHUD : MonoBehaviour
     private void Start()
     {
         Debug.LogWarning("BAD CODE");
-        m_canvas.worldCamera = m_camera;
+        m_canvas.worldCamera = m_camera;//Why is this bad?
 
         this.BindUntilDestroy<Activity>(EventTags.Activity_OnStart, OnActivityStart);
         this.BindUntilDestroy<Activity>(EventTags.Activity_OnFinish, OnActivityFinish);
