@@ -82,7 +82,7 @@ public abstract class Activity
         return null;
     }
 
-    public bool CanJoin(Vehicle vehicle)
+    public bool CanJoin(/*Vehicle vehicle*/)
     {
         return !m_inProgress;
     }

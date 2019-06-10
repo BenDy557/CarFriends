@@ -78,7 +78,7 @@ public class UIVehicleHUD : MonoBehaviour
 
         Activity activity = m_currentActivityZone.Activity;
 
-        if (activity.CanJoin(m_vehicle))
+        if (activity.CanJoin())
         {
             //display join request prompt
             m_activityPrompt.text = "Join " + activity.GetType().ToString() + " Activity";

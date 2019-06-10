@@ -22,6 +22,7 @@ public abstract class TriggerZone : MonoBehaviour
 
     protected virtual void Awake()
     {
+        //TODO// maybe not add component, maybe add different types of triggers in prefab variants? It might be fine aswell to leave it like
         m_collider = gameObject.AddComponent<CapsuleCollider>();
         m_collider.isTrigger = true;
         m_collider.radius = m_radius;
