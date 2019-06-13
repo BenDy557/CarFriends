@@ -33,7 +33,7 @@ public class EventStartZone : TriggerZone
     private void OnEnable()
     {
         this.BindUntilDisable<Vehicle>(EventTags.Activity_RequestStart, RequestStart);
-        this.BindUntilDestroy<>(EventTags.Activity_OnFinish
+        this.BindUntilDestroy<Activity>(EventTags.Activity_OnFinish, ActivityFinished);
     }
 
     private void RequestStart(Vehicle vehicle)
@@ -72,6 +72,14 @@ public class EventStartZone : TriggerZone
     }
 
     #region VIEW
+    private void ActivityFinished(Activity activity)
+    {
+        if (m_activity != activity)
+            return;
+
+        ToggleParticles(true);
+    }
+
     private void SetParticleRadius(float radius)
     {
         ParticleSystem.EmissionModule emissionModule = m_particleSystem.emission;

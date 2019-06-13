@@ -383,8 +383,13 @@ public class GameSessionManager : Singleton<GameSessionManager>
             //Shouldnt be using get component
             SplitscreenManager.Instance.AddScreen(localCamera);
 
+            Debug.LogWarning("BadCode");//shouldnt just be spawning and setting this directly
             UIVehicleHUD tempHUD = Instantiate(m_canvasPrefab).GetComponent<UIVehicleHUD>();
             tempHUD.Initialise(vehicle, localCamera);
+
+            //TODO//add checkpoint visualisation per vehicle here
+            UIVehicleGuide tempGuide = Instantiate(m_canvasPrefab).GetComponent<UIVehicleGuide>();
+
         }
         else
         {

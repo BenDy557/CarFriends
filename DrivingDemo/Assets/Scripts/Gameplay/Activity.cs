@@ -35,8 +35,8 @@ public abstract class Activity
 
         m_inProgress = true;
 
+        ActivityManager.RegisterActivity(this);
         Unibus.Dispatch<Activity>(EventTags.Activity_OnStart, this);
-
         return true;
     }
 
@@ -50,6 +50,8 @@ public abstract class Activity
 
         m_inProgress = false;
         //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
+
+        ActivityManager.DeregisterActivity(this);
         Unibus.Dispatch<Activity>(EventTags.Activity_OnFinish, this);
     }
 
@@ -82,9 +84,15 @@ public abstract class Activity
         return null;
     }
 
-    public bool CanJoin(/*Vehicle vehicle*/)
+    public bool CanJoin(Vehicle vehicle)
     {
-        return !m_inProgress;
+        if (ActivityManager.HasActivity(vehicle))
+            return false;
+
+        if (m_inProgress)
+            return false;
+
+        return true;
     }
 }
 
