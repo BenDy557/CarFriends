@@ -64,6 +64,9 @@ public abstract class TriggerZone : MonoBehaviour
         tempColor.a = 1f;
         Handles.color = tempColor;
         Handles.DrawWireDisc(transform.position, Vector3.up, m_radius);
+        Handles.DrawLine(transform.position, transform.position + (transform.forward * m_radius));
+        Handles.DrawDottedLine(transform.position - (transform.right * m_radius), transform.position + (transform.right * m_radius),4f);
+
 
         Ray tempRay = new Ray(transform.position + (Vector3.up * 500f), Vector3.down);
         RaycastHit raycastHit;

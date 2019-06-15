@@ -14,18 +14,21 @@ public class GameSessionManager : Singleton<GameSessionManager>
     [SerializeField]
     private Transform m_spawnPoint;
 
-    [SerializeField, Required]
-    private GameObject m_vehiclePrefab = null;
-    [SerializeField, Required]
-    private GameObject m_cameraPrefab = null;
-    [SerializeField, Required]
-    private GameObject m_canvasPrefab = null;
-
-
     private int m_maxLocalPlayerCount = 4;
 
     [SerializeField]
     private HashSet<Vehicle> m_localPlayers = new HashSet<Vehicle>();
+    public IEnumerable<Vehicle> LocalPlayers
+    {
+        get
+        {
+            foreach (Vehicle vehicle in m_localPlayers)
+            {
+                yield return vehicle;
+            }
+        }
+    }
+
     //TODO// should probably be a hashset or dictionary, only want unique players
     private List<NetworkPlayer> m_players = new List<NetworkPlayer>();
 
@@ -345,7 +348,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
 
 
         //never accept unauthorised locomotion data when acting as server
-        if (NetworkManager.Instance.NetworkRole == NetworkRole.CLIENT)
+        if (NetworkManager.Instance.NetworkRole != NetworkRole.SERVER)
         {
             Vehicle newPlayer = SpawnVehicle(netData.LocomotionData.Position, netData.LocomotionData.Rotation, -1, netData.NetworkObjectID, false);
             NetworkPlayer newNetworkPlayer = new NetworkPlayer(netData.NetworkObjectID, "NewPlayer", null, newPlayer);
@@ -367,7 +370,7 @@ public class GameSessionManager : Singleton<GameSessionManager>
     //TODO//should use dedicated spawner//replace Instantiate with pooler
     private Vehicle SpawnVehicle(Vector3 position, Quaternion rotation,int localControllerID = -1, int netID = -1, bool offlineMode = true)
     {
-        Vehicle vehicle = Instantiate(m_vehiclePrefab, position, rotation).GetComponent<Vehicle>();
+        Vehicle vehicle = Instantiate(PrefabLibrary.Get(PrefabLibrary.VehicleDefault), position, rotation).GetComponent<Vehicle>();
 
         vehicle.Init(localControllerID, netID);
 
@@ -377,19 +380,17 @@ public class GameSessionManager : Singleton<GameSessionManager>
         {
             m_localPlayers.Add(vehicle);
             
-            UnityStandardAssets.Cameras.AutoCam localCameraController = Instantiate(m_cameraPrefab).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
+            UnityStandardAssets.Cameras.AutoCam localCameraController = Instantiate(PrefabLibrary.Get(PrefabLibrary.CameraDefault)).GetComponent<UnityStandardAssets.Cameras.AutoCam>();
             localCameraController.SetTarget(vehicle.transform);
             Camera localCamera = localCameraController.GetComponentInChildren<Camera>();
             //Shouldnt be using get component
             SplitscreenManager.Instance.AddScreen(localCamera);
 
             Debug.LogWarning("BadCode");//shouldnt just be spawning and setting this directly
-            UIVehicleHUD tempHUD = Instantiate(m_canvasPrefab).GetComponent<UIVehicleHUD>();
+            UIVehicleHUD tempHUD = Instantiate(PrefabLibrary.Get(PrefabLibrary.HUDDefault)).GetComponent<UIVehicleHUD>();
             tempHUD.Initialise(vehicle, localCamera);
 
-            //TODO//add checkpoint visualisation per vehicle here
-            UIVehicleGuide tempGuide = Instantiate(m_canvasPrefab).GetComponent<UIVehicleGuide>();
-
+            WaypointManager.AddLocalPlayer(vehicle);
         }
         else
         {

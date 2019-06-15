@@ -27,11 +27,28 @@ public class Race : Activity
 
     public void Start(HashSet<Vehicle> participants, int laps)
     {
+        Start(participants);
+
         m_laps = laps;
         Unibus.Subscribe<TriggerZoneVehiclePair>(EventTags.TriggerEn_CheckpointReached, OnCheckpointArrival);
         SolveParticipantPositions();
 
-        Start(participants);
+        foreach (ActivityParticipentStats participant in m_particpantStats)
+        {
+            RaceParticipentStats tempStats = participant as RaceParticipentStats;
+            WaypointManager.SetWaypoint(tempStats.Vehicle, m_course.GetNextCheckpoint(tempStats.CurrentCheckpoint),true);
+        }
+    }
+
+    public override void Stop()
+    {
+        foreach (ActivityParticipentStats participant in m_particpantStats)
+        {
+            RaceParticipentStats tempStats = participant as RaceParticipentStats;
+            WaypointManager.ToggleWaypoint(tempStats.Vehicle,false);
+        }
+
+        base.Stop();
     }
 
     private void OnCheckpointArrival(TriggerZoneVehiclePair triggerZoneVehiclePairIn)
@@ -40,18 +57,20 @@ public class Race : Activity
             return;
 
         Checkpoint checkpointIn = triggerZoneVehiclePairIn.TriggerZone as Checkpoint;
-        Vehicle vehicleIn = triggerZoneVehiclePairIn.Vehicle;
+        Vehicle tempVehicle = triggerZoneVehiclePairIn.Vehicle;
 
-        if (!m_participants.ContainsKey(vehicleIn) || !m_course.Checkpoints.Contains(checkpointIn))
+        if (!m_participants.ContainsKey(tempVehicle) || !m_course.Checkpoints.Contains(checkpointIn))
             return;
 
-        RaceParticipentStats tempStats = m_participants[vehicleIn] as RaceParticipentStats;
+        RaceParticipentStats tempStats = m_participants[tempVehicle] as RaceParticipentStats;
 
         //if the checkpoint being hit is the next in line for the current vehicle
         if (checkpointIn == m_course.GetNextCheckpoint(tempStats.CurrentCheckpoint))
         {
             //the the current checkpoint is incremented
             tempStats.IncrementCheckpoint(checkpointIn);
+
+            WaypointManager.SetWaypoint(tempVehicle, m_course.GetNextCheckpoint(tempStats.CurrentCheckpoint));
 
             SolveParticipantPositions();
             
