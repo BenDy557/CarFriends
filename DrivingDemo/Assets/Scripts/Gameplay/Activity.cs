@@ -45,14 +45,13 @@ public abstract class Activity
         if (!m_inProgress)
             return;
 
-        m_participants.Clear();
-        m_particpantStats.Clear();
-
-        m_inProgress = false;
-        //Unibus.Unsubscribe<Checkpoint.CheckpointVehiclePair>(EventTags.CheckpointReached, OnCheckpointArrival);
-
         ActivityManager.DeregisterActivity(this);
         Unibus.Dispatch<Activity>(EventTags.Activity_OnFinish, this);
+
+        m_participants.Clear();
+        m_particpantStats.Clear();
+        
+        m_inProgress = false;
     }
 
     /// <summary>
