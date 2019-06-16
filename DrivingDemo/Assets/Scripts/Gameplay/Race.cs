@@ -15,8 +15,9 @@ public class Race : Activity
     private int m_laps = 0;
     public int Laps { get { return m_laps; } }
 
-    public Race(Course course)
+    public Race(Course course) : base()
     {
+        Type = ActivityType.RACE;
         m_course = course;
     }
 
@@ -31,7 +32,6 @@ public class Race : Activity
 
         m_laps = laps;
         Unibus.Subscribe<TriggerZoneVehiclePair>(EventTags.TriggerEn_CheckpointReached, OnCheckpointArrival);
-        SolveParticipantPositions();
 
         foreach (ActivityParticipentStats participant in m_particpantStats)
         {
@@ -89,7 +89,7 @@ public class Race : Activity
             Debug.Log("LapCompleted: " + tempStats.Vehicle.name, tempStats.Vehicle.gameObject);
             tempStats.IncrementLap(1);
             
-            if (tempStats.LapsCompleted >= m_laps && !tempStats.RaceFinished)
+            if (tempStats.LapsCompleted >= m_laps && !tempStats.FinishedActivity)
             {
                 Debug.Log("RaceFinished: " + tempStats.Vehicle.name, tempStats.Vehicle.gameObject);
                 tempStats.FinishRace();
@@ -100,7 +100,7 @@ public class Race : Activity
     }
 
     //TODO incorrectly sorts, as checkpoints arent the best way to work out race position
-    private void SolveParticipantPositions()
+    protected override void SolveParticipantPositions()
     {
         RaceComparer raceComparer = new RaceComparer();
         m_particpantStats.Sort(raceComparer);
@@ -111,17 +111,9 @@ public class Race : Activity
         }
     }
 
-    public void AddParticipant(Vehicle vehicle)
+    public override void AddParticipant(Vehicle vehicle)
     {
         AddParticipant(vehicle, new RaceParticipentStats(this, vehicle, m_course.GetFirstCheckpoint()));
-    }
-
-    public override void AddParticipants(ICollection<Vehicle> vehicles)
-    {
-        foreach (Vehicle vehicle in vehicles)
-        {
-            AddParticipant(vehicle);
-        }
     }
 }
 
@@ -131,12 +123,10 @@ public class RaceParticipentStats : ActivityParticipentStats
     public int LapsCompleted { get; private set; }
     public int CurrentLap { get; private set; }
     public int CheckpointsCompleted { get; private set; }
-    public int Position { get; set; }
-
-    public bool RaceFinished { get; private set; }
 
     public RaceParticipentStats(Activity activity, Vehicle vehicle, Checkpoint checkpoint) : base(activity, vehicle)
     {
+        Type = typeof(RaceParticipentStats);
         CurrentCheckpoint = checkpoint;
         LapsCompleted = 0;
         RefreshCurrentLap();
@@ -161,7 +151,7 @@ public class RaceParticipentStats : ActivityParticipentStats
 
     public void FinishRace()
     {
-        RaceFinished = true;
+        FinishedActivity = true;
     }
 }
 

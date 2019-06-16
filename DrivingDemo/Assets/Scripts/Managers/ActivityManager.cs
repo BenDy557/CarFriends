@@ -5,6 +5,7 @@ using UnibusEvent;
 
 public class ActivityManager : Singleton<ActivityManager>
 {
+
     [SerializeField]
     private static List<Activity> m_currentActivities;
 
@@ -14,6 +15,12 @@ public class ActivityManager : Singleton<ActivityManager>
         base.Awake();
 
         m_currentActivities = new List<Activity>();
+    }
+
+    private void Update()
+    {
+        foreach (Activity activity in m_currentActivities)
+            activity.Update();
     }
 
     public static void RegisterActivity(Activity activity)
@@ -36,4 +43,11 @@ public class ActivityManager : Singleton<ActivityManager>
         
         return false;
     }
+}
+
+public enum ActivityType
+{
+    NONE,
+    RACE,
+    HIGH_JUMP,
 }

@@ -2,16 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnibusEvent;
+using NaughtyAttributes;
 
 public class EventStartZone : TriggerZone
 {
     [SerializeField]
-    private Course m_courseToRace = null;
-    [SerializeField]
-    private int m_laps = 2;
+    private ActivityType m_activityType;
 
-    private Race m_activity;
-    public Race Activity { get { return m_activity; } }
+    #region customInspector
+    private bool IsRace() { return m_activityType == ActivityType.RACE; } 
+    private bool IsHighJump(){ return m_activityType == ActivityType.HIGH_JUMP; } 
+    #endregion
+
+    [SerializeField,ShowIf("IsRace")]
+    private Course m_courseToRace = null;
+    [SerializeField, ShowIf("IsRace")]
+    private int m_laps = 2;
+    [SerializeField, ShowIf("IsHighJump")]
+    private float m_duration = -1f;
+
+
+    private Activity m_activity;
+    public Activity Activity { get { return m_activity; } }
 
     private HashSet<Vehicle> m_entrants = new HashSet<Vehicle>();
 
@@ -27,7 +39,16 @@ public class EventStartZone : TriggerZone
         if (m_courseToRace == null)
             Debug.LogError("no course added");
 
-        m_activity = new Race(m_courseToRace);
+        switch (m_activityType)
+        {
+            case ActivityType.RACE:
+                m_activity = new Race(m_courseToRace);
+                break;
+            case ActivityType.HIGH_JUMP:
+                m_activity = new ActivityHighJump();
+                break;
+        }
+
     }
 
     private void OnEnable()
@@ -43,9 +64,22 @@ public class EventStartZone : TriggerZone
 
         if (m_activity == null || !m_activity.InProgress)
         {
-            m_activity.Start(m_entrants,m_laps);
+            StartActivity();
 
             ToggleParticles(false);
+        }
+    }
+
+    private void StartActivity()
+    {
+        switch (m_activityType)
+        {
+            case ActivityType.RACE:
+                ((Race)m_activity).Start(m_entrants, m_laps);
+                break;
+            case ActivityType.HIGH_JUMP:
+                ((ActivityHighJump)m_activity).Start(m_entrants, m_duration);
+                break;
         }
     }
 
