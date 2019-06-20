@@ -20,7 +20,7 @@ public static class EventTags
     public static string TriggerEn_ActivityStartZone = "TriggerEn_ActivityStartZone";
     public static string TriggerEx_ActivityStartZone = "TriggerEx_ActivityStartZone";
     public static string TriggerEn_CheckpointReached = "TriggerEn_CheckpointReached";
-    
+
     #endregion
 
     #region ActivityEvents

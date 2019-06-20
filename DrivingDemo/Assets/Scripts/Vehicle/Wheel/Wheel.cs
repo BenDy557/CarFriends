@@ -83,25 +83,15 @@ public class Wheel : MonoBehaviour
         tempSpring.TargetPosition = axleData.WheelData.TargetPosition;
         m_collider.SuspensionSpring = tempSpring;
 
-        m_collider.UseSimpleFrictionCurve = axleData.WheelData.UseSimpleFrictionCurve;
-
         //forward
         m_collider.SimpleForwardFriction = axleData.WheelData.ForwardFrictionCurve;
-        WheelFrictionCurveSource forwardFriction = m_collider.ForwardFriction;
-        forwardFriction.ExtremumSlip = axleData.WheelData.ExtremiumSlipForward;
-        forwardFriction.ExtremumValue = axleData.WheelData.ExtremiumValueForward;
-        forwardFriction.AsymptoteSlip = axleData.WheelData.AsymptoteSlipForward;
-        forwardFriction.AsymptoteValue = axleData.WheelData.AsymptoteValueForward;
-        m_collider.ForwardFriction = forwardFriction;
-
         //Sideways
         m_collider.SimpleLateralFriction = axleData.WheelData.LateralFrictionCurve;
-        WheelFrictionCurveSource sidewaysFriction = m_collider.SidewaysFriction;
-        sidewaysFriction.ExtremumSlip = axleData.WheelData.ExtremiumSlipSideways;
-        sidewaysFriction.ExtremumValue = axleData.WheelData.ExtremiumValueSideways;
-        sidewaysFriction.AsymptoteSlip = axleData.WheelData.AsymptoteSlipSideways;
-        sidewaysFriction.AsymptoteValue = axleData.WheelData.AsymptoteValueSideways;
-        m_collider.SidewaysFriction = sidewaysFriction;
+
+        //Overall
+        m_collider.UseForceLimitCurve = axleData.WheelData.UseForceLimitCurve;
+        m_collider.WheelForceLimitCurve = axleData.WheelData.WheelForceLimitCurve;
+
 
         #endregion
 
@@ -111,8 +101,6 @@ public class Wheel : MonoBehaviour
         //VIEW
         m_model.transform.localScale = Vector3.one * axleData.WheelData.WheelRadius;
         UpdateModel();
-
-        PopulateFrictionCurves();
     }
 
     public void Update()
@@ -215,23 +203,6 @@ public class Wheel : MonoBehaviour
         wheelHit = m_wheelHit;
         return m_wheelHit.collider != null;
     }*/
-
-    private void PopulateFrictionCurves()
-    {
-        m_forwardSlipCurve = new AnimationCurve();
-        float fwdLimit = m_collider.ForwardFriction.AsymptoteSlip;
-        for (float i = -fwdLimit; i < fwdLimit; i += m_slipIntervals)
-        {
-            m_forwardSlipCurve.AddKey(i, m_collider.ForwardFriction.Evaluate(i));
-        }
-
-        m_lateralSlipCurve = new AnimationCurve();
-        float latLimit = m_collider.SidewaysFriction.AsymptoteSlip;
-        for (float i = -latLimit; i < latLimit; i += m_slipIntervals)
-        {
-            m_lateralSlipCurve.AddKey(i, m_collider.SidewaysFriction.Evaluate(i));
-        }
-    }
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()

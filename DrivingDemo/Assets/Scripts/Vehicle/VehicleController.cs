@@ -66,6 +66,7 @@ public class VehicleController : MonoBehaviour
     {
         if (IsPlayer)
         {
+            m_vehicleInput.pitch = m_rewiredPlayer.GetAxis("Pitch");
             m_vehicleInput.steering = m_rewiredPlayer.GetAxis("Steering");
             m_vehicleInput.acceleration = (m_rewiredPlayer.GetAxis("Acceleration"));// + 1) * 0.5f;
             //m_vehicleInput.acceleration = (Input.GetAxis("Acceleration") + 1) * 0.5f;

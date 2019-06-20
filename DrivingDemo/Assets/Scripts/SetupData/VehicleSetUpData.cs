@@ -22,6 +22,10 @@ public class VehicleSetUpData : ScriptableObject
 	[SerializeField] private float m_maxEngineTorque;
 	public float MaxEngineTorque{ get { return m_maxEngineTorque; } }
 
+    [SerializeField]
+    private float m_airControlAcceleration = 1f;
+    public float AirControlAcceleration { get { return m_airControlAcceleration; } }
+
     /*[SerializeField, NaughtyAttributes.BoxGroup("Axles")]
 	private List<AxleData> m_axles;
 	public IList<AxleData> Axles { get { return m_axles.AsReadOnly(); } }*/
@@ -129,52 +133,20 @@ public class WheelData
 	private float m_targetPosition;
 	public float TargetPosition { get { return m_targetPosition; } }
 
-
-	//Forward
-	[SerializeField,Header("Forward")]
-	private float m_extremiumSlipForward;
-	public float ExtremiumSlipForward { get { return m_extremiumSlipForward; } set { m_extremiumSlipForward = value; } }
-
-	[SerializeField]
-	private float m_extremiumValueForward;
-	public float ExtremiumValueForward { get { return m_extremiumValueForward; } set { m_extremiumValueForward = value; } }
-
-	[SerializeField]
-	private float m_asymptoteSlipForward;
-	public float AsymptoteSlipForward { get { return m_asymptoteSlipForward; } set { m_asymptoteSlipForward = value; } }
-
-	[SerializeField]
-	private float m_asymptoteValueForward;
-	public float AsymptoteValueForward { get { return m_asymptoteValueForward; } set { m_asymptoteValueForward = value; } }
-
-	//Sideways
-	[SerializeField,Header("Sideways")]
-	private float m_extremiumSlipSideways;
-	public float ExtremiumSlipSideways { get { return m_extremiumSlipSideways; } set { m_extremiumSlipSideways = value; } }
-
-	[SerializeField]
-	private float m_extremiumValueSideways;
-	public float ExtremiumValueSideways { get { return m_extremiumValueSideways; } set { m_extremiumValueSideways = value; } }
-
-	[SerializeField]
-	private float m_asymptoteSlipSideways;
-	public float AsymptoteSlipSideways { get { return m_asymptoteSlipSideways; } set { m_asymptoteSlipSideways = value; } }
-
-	[SerializeField]
-	private float m_asymptoteValueSideways;
-	public float AsymptoteValueSideways { get { return m_asymptoteValueSideways; } set { m_asymptoteValueSideways = value; } }
-
-
-    [SerializeField, Header("Simple")]
-    private bool m_useSimpleFrictionCurve;
-    public bool UseSimpleFrictionCurve { get { return m_useSimpleFrictionCurve; } }
     [SerializeField]
     private AnimationCurve m_forwardFrictionCurve;
     public AnimationCurve ForwardFrictionCurve { get { return m_forwardFrictionCurve; } }
     [SerializeField]
     private AnimationCurve m_lateralFrictionCurve;
     public AnimationCurve LateralFrictionCurve { get { return m_lateralFrictionCurve; } }
+    [SerializeField]
+    private bool m_useForceLimitCurve;
+    public bool UseForceLimitCurve { get { return m_useForceLimitCurve; } }
 
+    [SerializeField]
+    private AnimationCurve m_wheelForceLimitCurve;
+    public AnimationCurve WheelForceLimitCurve { get { return m_wheelForceLimitCurve; } }
+    
 
     [SerializeField] 
 	private GameObject m_model;

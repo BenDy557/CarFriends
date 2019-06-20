@@ -41,6 +41,8 @@ public class Vehicle : MonoBehaviour, INetObject
     private Drive m_engine;
     public Drive Engine { get { return m_engine; } }
 
+    private float m_airControlAcceleration;
+
     private bool m_initialised = false;
     public bool Initialised { get { return m_initialised; } }
 
@@ -139,9 +141,15 @@ public class Vehicle : MonoBehaviour, INetObject
         if (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up, Vector3.down) < 45f))
             Flip();
 
-
         if (m_vehicleInput.jump && IsGrounded)
             Jump();
+
+        if (!IsGrounded)
+        {
+            Vector3 pitchForce = (Vector3.right * m_vehicleInput.pitch * m_airControlAcceleration);
+            Vector3 rollForce = (-Vector3.forward * m_vehicleInput.steering * m_airControlAcceleration);
+            m_rigidBody.AddRelativeTorque(pitchForce + rollForce, ForceMode.VelocityChange);
+        }
     }
 
     public void Init(int localControllerID, int netID)
@@ -183,6 +191,7 @@ public class Vehicle : MonoBehaviour, INetObject
 
         m_engine.ApplySetupData(setupData, m_vehicleInput);
 
+        m_airControlAcceleration = setupData.AirControlAcceleration;
 
         //setupData.MaxBrakingTorque
         //setupData.MaxEngineTorque
@@ -258,6 +267,7 @@ public class Vehicle : MonoBehaviour, INetObject
 public class VehicleInput
 {
     public float steering;
+    public float pitch;
     public float acceleration;
     public float braking;
     public bool handBrake;

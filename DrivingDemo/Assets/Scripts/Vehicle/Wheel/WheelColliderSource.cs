@@ -30,17 +30,15 @@ public class WheelColliderSource : MonoBehaviour
     private SphereCollider m_collider;
 
     [SerializeField]
-    private bool m_useBasicFriction = false;
-
-    [SerializeField, NaughtyAttributes.HideIf("UsingBasicFriction")]
-    private WheelFrictionCurveSource m_forwardFriction; //Properties of tire friction in the direction the wheel is pointing in.
-    [SerializeField, NaughtyAttributes.HideIf("UsingBasicFriction")]
-    private WheelFrictionCurveSource m_sidewaysFriction; //Properties of tire friction in the sideways direction.
-
-    [SerializeField, NaughtyAttributes.ShowIf("UsingBasicFriction")]
     private AnimationCurve m_simpleForwardFriction;
-    [SerializeField, NaughtyAttributes.ShowIf("UsingBasicFriction")]
+    [SerializeField]
     private AnimationCurve m_simpleLateralFriction;
+
+    [SerializeField]
+    private bool m_useForceLimit = false;
+    
+    [SerializeField, NaughtyAttributes.ShowIf("UsingForceLimit")]
+    private AnimationCurve m_wheelForceLimitCurve;
 
     //private float m_forwardSlip;
     private float m_sidewaysSlip;
@@ -134,28 +132,7 @@ public class WheelColliderSource : MonoBehaviour
             return m_mass;
         }
     }
-    public WheelFrictionCurveSource ForwardFriction
-    {
-        set
-        {
-            m_forwardFriction = value;
-        }
-        get
-        {
-            return m_forwardFriction;
-        }
-    }
-    public WheelFrictionCurveSource SidewaysFriction
-    {
-        set
-        {
-            m_sidewaysFriction = value;
-        }
-        get
-        {
-            return m_sidewaysFriction;
-        }
-    }
+    
     public AnimationCurve SimpleForwardFriction
     {
         set
@@ -178,11 +155,31 @@ public class WheelColliderSource : MonoBehaviour
             return m_simpleLateralFriction;
         }
     }
-    public bool UseSimpleFrictionCurve
+
+    public bool UseForceLimitCurve
     {
-        get { return m_useBasicFriction; }
-        set { m_useBasicFriction = value; }
+        set
+        {
+            m_useForceLimit = value;
+        }
+        get
+        {
+            return m_useForceLimit;
+        }
     }
+
+    public AnimationCurve WheelForceLimitCurve
+    {
+        set
+        {
+            m_wheelForceLimitCurve = value;
+        }
+        get
+        {
+            return m_wheelForceLimitCurve;
+        }
+    }
+
     public float MotorTorque
     {
         set
@@ -243,9 +240,6 @@ public class WheelColliderSource : MonoBehaviour
         m_suspensionCompression = 0.0f;
         Mass = 1.0f;
 
-        m_forwardFriction = new WheelFrictionCurveSource();
-        m_sidewaysFriction = new WheelFrictionCurveSource();
-
         m_suspensionSpring = new JointSpringSource();
         m_suspensionSpring.Spring = 15000.0f;
         m_suspensionSpring.Damper = 1000.0f;
@@ -280,7 +274,8 @@ public class WheelColliderSource : MonoBehaviour
 
             CalculateForcesFromSlips();
 
-            m_rigidbody.AddForceAtPosition(m_springForce, transform.position);
+            //m_rigidbody.AddForceAtPosition(m_springForce, transform.position);
+            m_rigidbody.AddForceAtPosition(m_springForce, m_wheelHit.Point);
             m_rigidbody.AddForceAtPosition(m_wheelForce, m_wheelHit.Point);
 
         }
@@ -420,23 +415,26 @@ public class WheelColliderSource : MonoBehaviour
 
     private void CalculateForcesFromSlips()
     {
-        //WheelHitSource groundHit;
-        //GetGroundHit(out groundHit);
-
-        //Forward slip force
-        /*float forwardFrictionValue = m_useBasicFriction ? m_simpleForwardFriction.Evaluate(m_forwardSlip) : m_forwardFriction.Evaluate(m_forwardSlip);
-        Vector3 forwardSlipForce = m_wheelParent.forward * Mathf.Sign(m_forwardSlip) * forwardFrictionValue;
-        forwardSlipForce = Vector3.zero;*/
 
         //Lateral slip force
-        float lateralFrictionValue = m_useBasicFriction ? m_simpleLateralFriction.Evaluate(m_sidewaysSlip) : m_sidewaysFriction.Evaluate(m_sidewaysSlip);
+        float lateralFrictionValue = m_simpleLateralFriction.Evaluate(m_sidewaysSlip);
         //Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
         Vector3 lateralSlipForce = -m_wheelHit.NormalRight * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
         //lateralSlipForce = Vector3.zero;
-        //Debug.Log("wheel" + name);
-        //Debug.Log("ForwardSlip " + m_forwardSlip);
-        //Debug.Log("sideways slip " + m_sidewaysSlip);
+        Vector3 fakeForce = m_wheelParent.forward * m_wheelMotorTorque;
 
+        m_wheelForce = fakeForce + lateralSlipForce;
+
+        Debug.Log("SLIP" + m_sidewaysSlip);
+        Debug.Log("LATERAL" + lateralSlipForce.magnitude);
+
+
+        Debug.Log("MAGNITUDE" + m_wheelForce.magnitude);
+
+        if (m_useForceLimit)
+            m_wheelForce *= m_wheelForceLimitCurve.Evaluate(m_wheelForce.magnitude);
+
+        Debug.Log("MAGNITUDE" + m_wheelForce.magnitude);
 
         //Spring force
         //Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
@@ -445,21 +443,15 @@ public class WheelColliderSource : MonoBehaviour
 
         Vector3 resultantSpringForce = m_wheelHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
 
-        Vector3 fakeForce = m_wheelParent.forward * m_wheelMotorTorque;
 
-        m_springForce = /*forwardSlipForce + */lateralSlipForce + resultantSpringForce;
-        m_wheelForce = fakeForce;
-
-        //Debug.Log("MotorTorque " + m_wheelMotorTorque);
-        //Debug.DrawLine(transform.position, transform.position + (forwardSlipForce * 0.005f), Color.red);
-        /*Debug.DrawLine(transform.position, transform.position + (lateralSlipForce * 0.005f), Color.green);
-        Debug.DrawLine(transform.position, transform.position + (resultantSpringForce * 0.005f), Color.blue);
-        Debug.DrawLine(transform.position, transform.position + (m_springForce * 0.005f), Color.white);*/
+        m_springForce = /*forwardSlipForce + */ resultantSpringForce;
+        
     }
 
-    private bool UsingBasicFriction()
+    //naughty attributes
+    private bool UsingForceLimit()
     {
-        return m_useBasicFriction;
+        return m_useForceLimit;
     }
 
 #if UNITY_EDITOR
