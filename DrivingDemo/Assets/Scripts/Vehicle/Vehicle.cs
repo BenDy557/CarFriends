@@ -138,11 +138,18 @@ public class Vehicle : MonoBehaviour, INetObject
             }
         }
 
-        if (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up, Vector3.down) < 45f))
-            Flip();
+
 
         if (m_vehicleInput.jump && IsGrounded)
             Jump();
+
+
+    }
+
+    private void FixedUpdate()
+    {
+        if (m_rigidBody.velocity.magnitude < 0.1f && (Vector3.Angle(transform.up, Vector3.down) < 45f))
+            Flip();
 
         if (!IsGrounded)
         {

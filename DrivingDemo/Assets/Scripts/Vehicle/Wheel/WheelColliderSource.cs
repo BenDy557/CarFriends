@@ -425,16 +425,9 @@ public class WheelColliderSource : MonoBehaviour
 
         m_wheelForce = fakeForce + lateralSlipForce;
 
-        Debug.Log("SLIP" + m_sidewaysSlip);
-        Debug.Log("LATERAL" + lateralSlipForce.magnitude);
-
-
-        Debug.Log("MAGNITUDE" + m_wheelForce.magnitude);
-
         if (m_useForceLimit)
             m_wheelForce *= m_wheelForceLimitCurve.Evaluate(m_wheelForce.magnitude);
-
-        Debug.Log("MAGNITUDE" + m_wheelForce.magnitude);
+            
 
         //Spring force
         //Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
