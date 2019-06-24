@@ -89,6 +89,7 @@ public class Wheel : MonoBehaviour
         m_collider.SimpleLateralFriction = axleData.WheelData.LateralFrictionCurve;
 
         //Overall
+        m_collider.m_defaultTyreLoad = axleData.WheelData.DefaultTyreLoad;
         m_collider.UseForceLimitCurve = axleData.WheelData.UseForceLimitCurve;
         m_collider.WheelForceLimitCurve = axleData.WheelData.WheelForceLimitCurve;
 

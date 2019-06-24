@@ -34,6 +34,8 @@ public class WheelColliderSource : MonoBehaviour
     [SerializeField]
     private AnimationCurve m_simpleLateralFriction;
 
+    [NaughtyAttributes.MinValue(0.00000000001f)]
+    public float m_defaultTyreLoad;
     [SerializeField]
     private bool m_useForceLimit = false;
     
@@ -415,7 +417,17 @@ public class WheelColliderSource : MonoBehaviour
 
     private void CalculateForcesFromSlips()
     {
+        //Spring force
+        //Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        float springMagnitude = (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
+        float springDampingMagnitude = (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
 
+        float springScalar = Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
+        Vector3 resultantSpringForce = m_wheelHit.Normal * springScalar;
+
+
+        m_springForce = /*forwardSlipForce + */ resultantSpringForce;
+        
         //Lateral slip force
         float lateralFrictionValue = m_simpleLateralFriction.Evaluate(m_sidewaysSlip);
         //Vector3 lateralSlipForce = -m_wheelParent.right * Mathf.Sign(m_sidewaysSlip) * lateralFrictionValue;
@@ -423,22 +435,12 @@ public class WheelColliderSource : MonoBehaviour
         //lateralSlipForce = Vector3.zero;
         Vector3 fakeForce = m_wheelParent.forward * m_wheelMotorTorque;
 
-        m_wheelForce = fakeForce + lateralSlipForce;
+        //Debug.Log("scalar: " + springScalar + " force scalar: " + (springScalar / m_defaultTyreLoad));
 
+        m_wheelForce = (fakeForce + lateralSlipForce) * Mathf.Clamp(springScalar/m_defaultTyreLoad,0f,2f);
+        
         if (m_useForceLimit)
             m_wheelForce *= m_wheelForceLimitCurve.Evaluate(m_wheelForce.magnitude);
-            
-
-        //Spring force
-        //Vector3 springForce = m_wheelParent.up * (m_suspensionCompression - m_suspensionDistance * (m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
-        float springMagnitude = (m_suspensionCompression - (m_suspensionDistance * m_suspensionSpring.TargetPosition)) * m_suspensionSpring.Spring;
-        float springDampingMagnitude = (m_suspensionCompression - m_suspensionCompressionPrev) / Time.deltaTime * m_suspensionSpring.Damper;
-
-        Vector3 resultantSpringForce = m_wheelHit.Normal * Mathf.Clamp(springMagnitude + springDampingMagnitude, 0f, float.PositiveInfinity);
-
-
-        m_springForce = /*forwardSlipForce + */ resultantSpringForce;
-        
     }
 
     //naughty attributes

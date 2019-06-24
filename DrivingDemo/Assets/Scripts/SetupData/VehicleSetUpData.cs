@@ -140,6 +140,10 @@ public class WheelData
     private AnimationCurve m_lateralFrictionCurve;
     public AnimationCurve LateralFrictionCurve { get { return m_lateralFrictionCurve; } }
     [SerializeField]
+    private float m_defaultTyreLoad;
+    public float DefaultTyreLoad { get { return m_defaultTyreLoad; } }
+
+    [SerializeField]
     private bool m_useForceLimitCurve;
     public bool UseForceLimitCurve { get { return m_useForceLimitCurve; } }
 
