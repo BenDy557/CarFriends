@@ -154,8 +154,9 @@ public class Vehicle : MonoBehaviour, INetObject
         if (!IsGrounded)
         {
             Vector3 pitchForce = (Vector3.right * m_vehicleInput.pitch * m_airControlAcceleration);
-            Vector3 rollForce = (-Vector3.forward * m_vehicleInput.steering * m_airControlAcceleration);
-            m_rigidBody.AddRelativeTorque(pitchForce + rollForce, ForceMode.VelocityChange);
+            Vector3 rollForce = (-Vector3.forward * m_vehicleInput.steering * m_airControlAcceleration *0.01f);
+            Vector3 turnForce = (Vector3.up * m_vehicleInput.steering * m_airControlAcceleration);
+            m_rigidBody.AddRelativeTorque(pitchForce + rollForce + turnForce, ForceMode.VelocityChange);
         }
     }
 
